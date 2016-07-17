@@ -8,8 +8,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef HTTP_MIME_TYPES_HPP
-#define HTTP_MIME_TYPES_HPP
+#ifndef HTTP_SERVER3_MIME_TYPES_HPP
+#define HTTP_SERVER3_MIME_TYPES_HPP
 
 #include <string>
 
@@ -21,7 +21,7 @@ namespace mime_types {
 std::string extension_to_type(const std::string& extension);
 
 } // namespace mime_types
-} // namespace server
+} // namespace server3
 } // namespace http
 
-#endif // HTTP_MIME_TYPES_HPP
+#endif // HTTP_SERVER3_MIME_TYPES_HPP

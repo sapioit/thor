@@ -8,8 +8,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef HTTP_HEADER_HPP
-#define HTTP_HEADER_HPP
+#ifndef HTTP_SERVER3_HEADER_HPP
+#define HTTP_SERVER3_HEADER_HPP
 
 #include <string>
 
@@ -22,7 +22,7 @@ struct header
   std::string value;
 };
 
-} // namespace server
+} // namespace server3
 } // namespace http
 
-#endif // HTTP_HEADER_HPP
+#endif // HTTP_SERVER3_HEADER_HPP

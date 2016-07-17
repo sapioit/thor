@@ -18,12 +18,14 @@ struct mapping {
     const char *extension;
     const char *mime_type;
 } mappings[] = {
-    {"gif", "image/gif"}, {"htm", "text/html"}, {"html", "text/html"}, {"jpg", "image/jpeg"}, {"png", "image/png"}};
+    {"gif", "image/gif"},  {"htm", "text/html"}, {"html", "text/html"},
+    {"jpg", "image/jpeg"}, {"png", "image/png"}, {0, 0} // Marks end of list.
+};
 
 std::string extension_to_type(const std::string &extension) {
-    for (mapping m : mappings) {
-        if (m.extension == extension) {
-            return m.mime_type;
+    for (mapping *m = mappings; m->extension; ++m) {
+        if (m->extension == extension) {
+            return m->mime_type;
         }
     }
 
@@ -31,5 +33,5 @@ std::string extension_to_type(const std::string &extension) {
 }
 
 } // namespace mime_types
-} // namespace server
+} // namespace server3
 } // namespace http

@@ -8,8 +8,8 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef HTTP_REPLY_HPP
-#define HTTP_REPLY_HPP
+#ifndef HTTP_SERVER3_REPLY_HPP
+#define HTTP_SERVER3_REPLY_HPP
 
 #include <string>
 #include <vector>
@@ -58,7 +58,7 @@ struct reply
   static reply stock_reply(status_type status);
 };
 
-} // namespace server
+} // namespace server3
 } // namespace http
 
-#endif // HTTP_REPLY_HPP
+#endif // HTTP_SERVER3_REPLY_HPP

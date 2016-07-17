@@ -12,6 +12,7 @@
 #include "mime_types.hpp"
 #include "reply.hpp"
 #include "request.hpp"
+#include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -63,7 +64,7 @@ void request_handler::handle_request(const request &req, reply &rep) {
         rep.content.append(buf, is.gcount());
     rep.headers.resize(2);
     rep.headers[0].name = "Content-Length";
-    rep.headers[0].value = std::to_string(rep.content.size());
+    rep.headers[0].value = boost::lexical_cast<std::string>(rep.content.size());
     rep.headers[1].name = "Content-Type";
     rep.headers[1].value = mime_types::extension_to_type(extension);
 }
@@ -94,5 +95,5 @@ bool request_handler::url_decode(const std::string &in, std::string &out) {
     return true;
 }
 
-} // namespace server
+} // namespace server3
 } // namespace http
