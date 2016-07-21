@@ -4,6 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 LIBS += -lboost_system -lpthread
+QMAKE_CXXFLAGS += -std=c++14
 
 HEADERS += \
     connection.hpp \
@@ -13,7 +14,8 @@ HEADERS += \
     request_handler.hpp \
     request_parser.hpp \
     request.hpp \
-    server.hpp
+    server.hpp \
+    user_handler.h
 
 SOURCES += \
     connection.cpp \
@@ -22,4 +24,5 @@ SOURCES += \
     reply.cpp \
     request_handler.cpp \
     request_parser.cpp \
-    server.cpp
+    server.cpp \
+    user_handler.cpp

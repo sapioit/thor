@@ -22,10 +22,9 @@ connection::connection(boost::asio::io_service &io_service, request_handler &han
 boost::asio::ip::tcp::socket &connection::socket() { return socket_; }
 
 void connection::start() {
-    socket_.async_read_some(
-        boost::asio::buffer(buffer_),
-        strand_.wrap(boost::bind(&connection::handle_read, shared_from_this(), boost::asio::placeholders::error,
-                                 boost::asio::placeholders::bytes_transferred)));
+    socket_.async_read_some(boost::asio::buffer(buffer_),
+                            strand_.wrap(std::bind(&connection::handle_read, shared_from_this(), std::placeholders::_1,
+                                                   std::placeholders::_2)));
 }
 
 void connection::handle_read(const boost::system::error_code &e, std::size_t bytes_transferred) {
@@ -36,19 +35,18 @@ void connection::handle_read(const boost::system::error_code &e, std::size_t byt
 
         if (result) {
             request_handler_.handle_request(request_, reply_);
-            boost::asio::async_write(socket_, reply_.to_buffers(),
-                                     strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
-                                                              boost::asio::placeholders::error)));
+            boost::asio::async_write(
+                socket_, reply_.to_buffers(),
+                strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
         } else if (!result) {
             reply_ = reply::stock_reply(reply::bad_request);
-            boost::asio::async_write(socket_, reply_.to_buffers(),
-                                     strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
-                                                              boost::asio::placeholders::error)));
+            boost::asio::async_write(
+                socket_, reply_.to_buffers(),
+                strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
         } else {
-            socket_.async_read_some(
-                boost::asio::buffer(buffer_),
-                strand_.wrap(boost::bind(&connection::handle_read, shared_from_this(), boost::asio::placeholders::error,
-                                         boost::asio::placeholders::bytes_transferred)));
+            socket_.async_read_some(boost::asio::buffer(buffer_),
+                                    strand_.wrap(std::bind(&connection::handle_read, shared_from_this(),
+                                                           std::placeholders::_1, std::placeholders::_2)));
         }
     }
 

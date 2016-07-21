@@ -13,6 +13,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/thread.hpp>
 #include <functional>
+#include <future>
 #include <thread>
 #include <vector>
 
@@ -20,9 +21,9 @@ namespace http {
 namespace server {
 
 server::server(const std::string &address, const std::string &port, const std::string &doc_root,
-               std::size_t thread_pool_size)
+               std::size_t thread_pool_size, const std::vector<user_handler> &user_handlers)
     : thread_pool_size_(thread_pool_size), signals_(io_service_), acceptor_(io_service_), new_connection_(),
-      request_handler_(doc_root) {
+      request_handler_(doc_root, user_handlers) {
     // Register to handle the signals that indicate when the server should exit.
     // It is safe to register for the same signal multiple times in a program,
     // provided all registration for the specified signal is made through Asio.
@@ -31,7 +32,7 @@ server::server(const std::string &address, const std::string &port, const std::s
 #if defined(SIGQUIT)
     signals_.add(SIGQUIT);
 #endif // defined(SIGQUIT)
-    signals_.async_wait(boost::bind(&server::handle_stop, this));
+    signals_.async_wait(std::bind(&server::handle_stop, this));
 
     // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
     boost::asio::ip::tcp::resolver resolver(io_service_);
@@ -47,20 +48,17 @@ server::server(const std::string &address, const std::string &port, const std::s
 
 void server::run() {
     // Create a pool of threads to run all of the io_services.
-    std::vector<std::thread> threads(thread_pool_size_);
-    for (auto i = 0u; i < threads.size(); ++i) {
-        threads[i] = std::thread{[this]() { io_service_.run(); }};
+    std::vector<std::future<void>> tasks(thread_pool_size_);
+    for (auto &task : tasks) {
+        task = std::async(std::launch::async, [this]() { io_service_.run(); });
     }
 
-    // Wait for all threads in the pool to exit.
-    for (auto &thread : threads)
-        thread.join();
+    // std::future destructor waits for all threads in the pool to exit.
 }
 
 void server::start_accept() {
     new_connection_.reset(new connection(io_service_, request_handler_));
-    acceptor_.async_accept(new_connection_->socket(),
-                           boost::bind(&server::handle_accept, this, boost::asio::placeholders::error));
+    acceptor_.async_accept(new_connection_->socket(), std::bind(&server::handle_accept, this, std::placeholders::_1));
 }
 
 void server::handle_accept(const boost::system::error_code &e) {

@@ -20,9 +20,38 @@
 namespace http {
 namespace server {
 
-request_handler::request_handler(const std::string &doc_root) : doc_root_(doc_root) {}
+request_handler::request_handler(const std::string &doc_root, std::vector<user_handler> user_handlers)
+    : doc_root_(doc_root), user_handlers(user_handlers) {}
 
-void request_handler::handle_request(const request &req, reply &rep) {
+void request_handler::handle_request(const request &req, reply &rep) const {
+    user_handler u_handler;
+    if (has_user_handler(req, u_handler))
+        invoke_user_handler(req, rep, u_handler);
+    else
+        handle_request_internally(req, rep);
+}
+
+void request_handler::invoke_user_handler(const request &req, reply &rep, const user_handler &u_handler) const {
+    u_handler.invoke(req, rep);
+
+    if (!rep.status)
+        rep.status = reply::ok;
+
+    {
+        std::string value;
+        if (!rep.has_header("Content-Length", value) || value == "") {
+            rep.set_or_add_header("Content-Length", std::to_string(rep.content.size()));
+        }
+    }
+    {
+        std::string value;
+        if (!rep.has_header("Content-Type", value) || value == "") {
+            rep.set_or_add_header("Content-Type", "text/plain");
+        }
+    }
+}
+
+void request_handler::handle_request_internally(const request &req, reply &rep) const {
     // Decode url to path.
     std::string request_path;
     if (!url_decode(req.uri, request_path)) {
@@ -67,6 +96,16 @@ void request_handler::handle_request(const request &req, reply &rep) {
     rep.headers[0].value = boost::lexical_cast<std::string>(rep.content.size());
     rep.headers[1].name = "Content-Type";
     rep.headers[1].value = mime_types::extension_to_type(extension);
+}
+
+bool request_handler::has_user_handler(const request &req, user_handler &handler) const {
+    auto it = std::find_if(user_handlers.begin(), user_handlers.end(),
+                           [&req](const user_handler &u_handler) { return u_handler.matches(req); });
+    if (it != user_handlers.end()) {
+        handler = *it;
+        return true;
+    }
+    return false;
 }
 
 bool request_handler::url_decode(const std::string &in, std::string &out) {

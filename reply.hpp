@@ -15,6 +15,7 @@
 #include <vector>
 #include <boost/asio.hpp>
 #include "header.hpp"
+#include <unordered_map>
 
 namespace http {
 namespace server {
@@ -45,6 +46,8 @@ struct reply
 
   /// The headers to be included in the reply.
   std::vector<header> headers;
+  // TODO modify to use a hash table
+  //std::unordered_map<std::string, std::string> headers;
 
   /// The content to be sent in the reply.
   std::string content;
@@ -53,6 +56,9 @@ struct reply
   /// underlying memory blocks, therefore the reply object must remain valid and
   /// not be changed until the write operation has completed.
   std::vector<boost::asio::const_buffer> to_buffers();
+
+  bool has_header(const std::string& key, std::string& value) const;
+  void set_or_add_header(const std::string& key, const std::string& value);
 
   /// Get a stock reply.
   static reply stock_reply(status_type status);

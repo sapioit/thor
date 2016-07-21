@@ -13,6 +13,7 @@
 
 #include <string>
 #include <boost/noncopyable.hpp>
+#include "user_handler.h"
 
 namespace http {
 namespace server {
@@ -26,14 +27,19 @@ class request_handler
 {
 public:
   /// Construct with a directory containing files to be served.
-  explicit request_handler(const std::string& doc_root);
+  explicit request_handler(const std::string& doc_root, std::vector<user_handler> user_handlers);
 
   /// Handle a request and produce a reply.
-  void handle_request(const request& req, reply& rep);
+  void handle_request(const request& req, reply& rep) const;
 
 private:
   /// The directory containing the files to be served.
   std::string doc_root_;
+  std::vector<user_handler> user_handlers;
+
+  bool has_user_handler(const request&, user_handler&) const;
+  void handle_request_internally(const request& req, reply& rep) const;
+  void invoke_user_handler(const request& req, reply& rep, const user_handler& u_handler) const;
 
   /// Perform URL-decoding on a string. Returns false if the encoding was
   /// invalid.

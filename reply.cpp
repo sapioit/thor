@@ -97,6 +97,17 @@ std::vector<boost::asio::const_buffer> reply::to_buffers() {
     return buffers;
 }
 
+bool reply::has_header(const std::string &key, std::string &value) const {
+    auto it = std::find_if(headers.begin(), headers.end(), [&key](const header &h) { return h.name == key; });
+    if (it != headers.end()) {
+        value = it->value;
+        return true;
+    }
+    return false;
+}
+
+void reply::set_or_add_header(const std::string &key, const std::string &value) { headers.emplace_back(key, value); }
+
 namespace stock_replies {
 
 const char ok[] = "";
