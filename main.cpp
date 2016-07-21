@@ -10,7 +10,7 @@
 //
 
 #include "server.hpp"
-#include "user_handler.h"
+#include "user_handler.hpp"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>

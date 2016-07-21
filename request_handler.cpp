@@ -10,9 +10,11 @@
 //
 
 #include "request_handler.hpp"
+#include "file_desc_cache.h"
 #include "mime_types.hpp"
 #include "reply.hpp"
 #include "request.hpp"
+#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <sstream>
@@ -24,12 +26,12 @@ namespace server {
 request_handler::request_handler(const std::string &doc_root, std::vector<user_handler> user_handlers)
     : doc_root_(doc_root), user_handlers_(user_handlers) {}
 
-void request_handler::handle_request(const request &req, reply &rep) const {
+void request_handler::handle_request(const request &req, reply &rep, sendfile_op &sendfile) const {
     user_handler u_handler;
     if (has_user_handler(req, u_handler))
         invoke_user_handler(req, rep, u_handler);
     else
-        handle_request_internally(req, rep);
+        handle_request_internally(req, rep, sendfile);
 }
 
 void request_handler::invoke_user_handler(const request &req, reply &rep, const user_handler &u_handler) const {
@@ -52,7 +54,7 @@ void request_handler::invoke_user_handler(const request &req, reply &rep, const 
     }
 }
 
-void request_handler::handle_request_internally(const request &req, reply &rep) const {
+void request_handler::handle_request_internally(const request &req, reply &rep, sendfile_op &sendfile) const {
     // Decode url to path.
     std::string request_path;
     if (!url_decode(req.uri, request_path)) {
@@ -71,17 +73,22 @@ void request_handler::handle_request_internally(const request &req, reply &rep) 
         request_path += "index.html";
     }
 
-    // Determine the file extension.
-    std::size_t last_slash_pos = request_path.find_last_of("/");
-    std::size_t last_dot_pos = request_path.find_last_of(".");
-    std::string extension;
-    if (last_dot_pos != std::string::npos && last_dot_pos > last_slash_pos) {
-        extension = request_path.substr(last_dot_pos + 1);
-    }
-
     // Open the file to send back.
     std::string full_path = doc_root_ + request_path;
-    std::ifstream is(full_path.c_str(), std::ios::in | std::ios::binary);
+    if (!boost::filesystem::exists(full_path)) {
+        rep = reply::stock_reply(reply::not_found);
+        return;
+    }
+    rep.status = reply::ok;
+    sendfile.fd = file_desc_cache::get(full_path, O_RDONLY);
+
+    rep.headers.resize(2);
+    rep.headers[0].name = "Content-Length";
+    rep.headers[0].value = boost::lexical_cast<std::string>(boost::filesystem::file_size(full_path));
+    rep.headers[1].name = "Content-Type";
+    rep.headers[1].value = mime_types::get_mime_type(full_path);
+
+    /*std::ifstream is(full_path.c_str(), std::ios::in | std::ios::binary);
     if (!is) {
         rep = reply::stock_reply(reply::not_found);
         return;
@@ -96,7 +103,7 @@ void request_handler::handle_request_internally(const request &req, reply &rep) 
     rep.headers[0].name = "Content-Length";
     rep.headers[0].value = boost::lexical_cast<std::string>(rep.content.size());
     rep.headers[1].name = "Content-Type";
-    rep.headers[1].value = mime_types::extension_to_type(extension);
+    rep.headers[1].value = mime_types::extension_to_type(extension);*/
 }
 
 bool request_handler::has_user_handler(const request &req, user_handler &handler) const {

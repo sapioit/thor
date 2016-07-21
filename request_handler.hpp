@@ -2,6 +2,7 @@
 // request_handler.hpp
 // ~~~~~~~~~~~~~~~~~~~
 //
+// Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)
 // Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -13,7 +14,8 @@
 
 #include <string>
 #include <boost/noncopyable.hpp>
-#include "user_handler.h"
+#include "user_handler.hpp"
+#include "sendfile_op.hpp"
 
 namespace http {
 namespace server {
@@ -30,7 +32,7 @@ public:
   explicit request_handler(const std::string& doc_root, std::vector<user_handler> user_handlers_);
 
   /// Handle a request and produce a reply.
-  void handle_request(const request& req, reply& rep) const;
+  void handle_request(const request& req, reply& rep, sendfile_op&) const;
 
 private:
   /// The directory containing the files to be served.
@@ -42,7 +44,7 @@ private:
   bool has_user_handler(const request&, user_handler&) const;
 
   /// Processes the request and returns either a stock resposne or a file
-  void handle_request_internally(const request& req, reply& rep) const;
+  void handle_request_internally(const request& req, reply& rep, sendfile_op&) const;
 
   /// Invokes the user handler and fixes the missing headers
   void invoke_user_handler(const request& req, reply& rep, const user_handler& u_handler) const;

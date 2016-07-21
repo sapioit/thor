@@ -2,6 +2,7 @@
 // mime_types.hpp
 // ~~~~~~~~~~~~~~
 //
+// Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)
 // Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -18,7 +19,7 @@ namespace server {
 namespace mime_types {
 
 /// Convert a file extension into a MIME type.
-std::string extension_to_type(const std::string& extension);
+std::string get_mime_type(const std::string& extension);
 
 } // namespace mime_types
 } // namespace server3

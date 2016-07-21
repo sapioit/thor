@@ -1,5 +1,5 @@
 //
-// connection.cpp
+// user_handler.cpp
 // ~~~~~~~~~~~~~~
 //
 // Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)
@@ -8,7 +8,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "user_handler.h"
+#include "user_handler.hpp"
 
 http::server::user_handler::user_handler(const std::string &http_method, const std::regex &pattern, handler func)
     : http_method_(http_method), pattern_(pattern), handler_func_(func) {}

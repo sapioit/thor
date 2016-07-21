@@ -2,6 +2,7 @@
 // connection.hpp
 // ~~~~~~~~~~~~~~
 //
+// Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)
 // Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -20,6 +21,7 @@
 #include "request.hpp"
 #include "request_handler.hpp"
 #include "request_parser.hpp"
+#include "sendfile_op.hpp"
 
 namespace http {
 namespace server {
@@ -39,6 +41,10 @@ public:
 
   /// Start the first asynchronous operation for the connection.
   void start();
+
+  void shutdown();
+
+  void handle_sendfile_done(const boost::system::error_code &, std::size_t);
 
 private:
   /// Handle completion of a read operation.
@@ -68,6 +74,8 @@ private:
 
   /// The reply to be sent back to the client.
   reply reply_;
+
+  sendfile_op sendfile_;
 };
 
 typedef boost::shared_ptr<connection> connection_ptr;

@@ -30,6 +30,7 @@ server::server(const std::string &address, const std::string &port, const std::s
     // provided all registration for the specified signal is made through Asio.
     signals_.add(SIGINT);
     signals_.add(SIGTERM);
+    signal(SIGPIPE, SIG_IGN);
 #if defined(SIGQUIT)
     signals_.add(SIGQUIT);
 #endif // defined(SIGQUIT)

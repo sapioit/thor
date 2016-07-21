@@ -3,8 +3,12 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-LIBS += -lboost_system -lpthread
-QMAKE_CXXFLAGS += -std=c++14
+LIBS += -lboost_system -lboost_filesystem -lpthread -flto
+QMAKE_CXXFLAGS += -std=c++14 -Wall
+QMAKE_CXXFLAGS_DEBUG += -O0 -g
+QMAKE_CXXFLAGS_RELEASE -= -O2
+QMAKE_CXXFLAGS_RELEASE += -O3 -flto
+
 
 HEADERS += \
     connection.hpp \
@@ -15,7 +19,10 @@ HEADERS += \
     request_parser.hpp \
     request.hpp \
     server.hpp \
-    user_handler.h
+    user_handler.hpp \
+    sendfile_op.hpp \
+    file_desc.h \
+    file_desc_cache.h
 
 SOURCES += \
     connection.cpp \
