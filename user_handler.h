@@ -14,7 +14,10 @@ struct user_handler {
     user_handler() = default;
     user_handler(const std::string &http_method, const std::regex &pattern, handler func);
 
+    /// Checks if a request matches this user handler. Verifies the HTTP method and tries to match the regex.
     bool matches(const request &req) const;
+
+    /// Simply invokes the user handler.
     void invoke(const request &req, reply &rep) const;
 
     private:

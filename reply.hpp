@@ -46,8 +46,8 @@ struct reply
 
   /// The headers to be included in the reply.
   std::vector<header> headers;
-  // TODO modify to use a hash table
-  //std::unordered_map<std::string, std::string> headers;
+  /// TODO modify to use a hash table
+  /// std::unordered_map<std::string, std::string> headers;
 
   /// The content to be sent in the reply.
   std::string content;
@@ -57,7 +57,12 @@ struct reply
   /// not be changed until the write operation has completed.
   std::vector<boost::asio::const_buffer> to_buffers();
 
+  /// Checks to see if the response has a header set. Return false if it doesn't,
+  /// or true if it has and sets the second argument to its value.
   bool has_header(const std::string& key, std::string& value) const;
+
+  /// Sets a header if it already exists, or creates it
+  /// FIXME: verify if the header exists, don't just push it
   void set_or_add_header(const std::string& key, const std::string& value);
 
   /// Get a stock reply.

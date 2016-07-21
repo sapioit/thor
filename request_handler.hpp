@@ -37,8 +37,14 @@ private:
   std::string doc_root_;
   std::vector<user_handler> user_handlers;
 
+  /// Checks all the user handlers and returns false if there is none or true if there is. Also, if it
+  /// return strue, the second argument will contain the user handler
   bool has_user_handler(const request&, user_handler&) const;
+
+  /// Processes the request and returns either a stock resposne or a file
   void handle_request_internally(const request& req, reply& rep) const;
+
+  /// Invokes the user handler and fixes the missing headers
   void invoke_user_handler(const request& req, reply& rep, const user_handler& u_handler) const;
 
   /// Perform URL-decoding on a string. Returns false if the encoding was
