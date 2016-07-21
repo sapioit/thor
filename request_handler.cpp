@@ -2,6 +2,7 @@
 // request_handler.cpp
 // ~~~~~~~~~~~~~~~~~~~
 //
+// Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)
 // Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -21,7 +22,7 @@ namespace http {
 namespace server {
 
 request_handler::request_handler(const std::string &doc_root, std::vector<user_handler> user_handlers)
-    : doc_root_(doc_root), user_handlers(user_handlers) {}
+    : doc_root_(doc_root), user_handlers_(user_handlers) {}
 
 void request_handler::handle_request(const request &req, reply &rep) const {
     user_handler u_handler;
@@ -99,9 +100,9 @@ void request_handler::handle_request_internally(const request &req, reply &rep) 
 }
 
 bool request_handler::has_user_handler(const request &req, user_handler &handler) const {
-    auto it = std::find_if(user_handlers.begin(), user_handlers.end(),
+    auto it = std::find_if(user_handlers_.begin(), user_handlers_.end(),
                            [&req](const user_handler &u_handler) { return u_handler.matches(req); });
-    if (it != user_handlers.end()) {
+    if (it != user_handlers_.end()) {
         handler = *it;
         return true;
     }
