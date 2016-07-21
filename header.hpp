@@ -17,12 +17,11 @@
 namespace http {
 namespace server {
 
-struct header
-{
-  std::string name;
-  std::string value;
-  header() = default;
-  header(const std::string& name, const std::string& value) : name(name), value(value) {}
+struct header {
+    std::string name;
+    std::string value;
+    header() = default;
+    header(const std::string &name, const std::string &value) : name(name), value(value) {}
 };
 
 } // namespace server3

@@ -25,11 +25,5 @@ HEADERS += \
     file_desc_cache.h
 
 SOURCES += \
-    connection.cpp \
     main.cpp \
-    mime_types.cpp \
-    reply.cpp \
-    request_handler.cpp \
-    request_parser.cpp \
-    server.cpp \
-    user_handler.cpp
+    reply.cpp

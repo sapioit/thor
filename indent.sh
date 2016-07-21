@@ -1,2 +1,2 @@
-find . -name '*.cpp' -or -name '*.h' | xargs clang-format -i
+find . -name '*.cpp' -or -name '*.h*' | xargs clang-format -i
 
