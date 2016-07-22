@@ -20,6 +20,7 @@
 #include "user_handler.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/noncopyable.hpp>
+#include <fstream>
 #include <string>
 
 namespace http {
@@ -28,17 +29,19 @@ namespace server {
 /// The common handler for all incoming requests.
 class request_handler : private boost::noncopyable {
     public:
+    enum protocol_type { http, https };
+
     /// Construct with a directory containing files to be served.
     explicit request_handler(const std::string &doc_root, std::vector<user_handler> user_handlers)
         : doc_root_(doc_root), user_handlers_(user_handlers) {}
 
     /// Handle a request and produce a reply.
-    void handle_request(const request &req, reply &rep, sendfile_op &sendfile) const {
+    template <protocol_type protocol> void handle_request(const request &req, reply &rep) const {
         user_handler u_handler;
         if (has_user_handler(req, u_handler))
             invoke_user_handler(req, rep, u_handler);
         else
-            handle_request_internally(req, rep, sendfile);
+            handle_request_internally<protocol>(req, rep);
     }
 
     private:
@@ -59,7 +62,9 @@ class request_handler : private boost::noncopyable {
     }
 
     /// Processes the request and returns either a stock resposne or a file
-    void handle_request_internally(const request &req, reply &rep, sendfile_op &sendfile) const {
+    template <protocol_type> void add_file(reply &rep, const std::string &full_path) const;
+
+    template <protocol_type protocol> void handle_request_internally(const request &req, reply &rep) const {
         // Decode url to path.
         std::string request_path;
         if (!url_decode(req.uri, request_path)) {
@@ -84,31 +89,14 @@ class request_handler : private boost::noncopyable {
             rep = reply::stock_reply(reply::status_type::not_found);
             return;
         }
-        rep.status = reply::status_type::ok;
-        sendfile.fd = file_desc_cache::get(full_path, O_RDONLY);
 
-        rep.headers.resize(2);
-        rep.headers[0].name = "Content-Length";
-        rep.headers[0].value = std::to_string(boost::filesystem::file_size(full_path));
-        rep.headers[1].name = "Content-Type";
-        rep.headers[1].value = mime_types::get_mime_type(full_path);
+        add_file<protocol>(rep, full_path);
 
-        /*std::ifstream is(full_path.c_str(), std::ios::in | std::ios::binary);
-      if (!is) {
-          rep = reply::stock_reply(reply::not_found);
-          return;
-      }
-
-      // Fill out the reply to be sent to the client.
-      rep.status = reply::ok;
-      char buf[512];
-      while (is.read(buf, sizeof(buf)).gcount() > 0)
-          rep.content.append(buf, is.gcount());
-      rep.headers.resize(2);
-      rep.headers[0].name = "Content-Length";
-      rep.headers[0].value = boost::lexical_cast<std::string>(rep.content.size());
-      rep.headers[1].name = "Content-Type";
-      rep.headers[1].value = mime_types::extension_to_type(extension);*/
+        if (rep.status == reply::status_type::ok) {
+            /// Statuses other than OK shouldn't have the fields set in this scope
+            rep.set_or_add_header("Content-Length", std::to_string(boost::filesystem::file_size(full_path)));
+            rep.set_or_add_header("Content-Type", mime_types::get_mime_type(full_path));
+        }
     }
 
     /// Invokes the user handler and fixes the missing headers
@@ -118,16 +106,20 @@ class request_handler : private boost::noncopyable {
         if (rep.status == reply::status_type::undefined)
             rep.status = reply::status_type::ok;
 
-        {
-            std::string value;
-            if (!rep.has_header("Content-Length", value) || value == "") {
-                rep.set_or_add_header("Content-Length", std::to_string(rep.content.size()));
+        /// Set the necessary fields that haven't been set by the user handler
+        if (rep.status == reply::status_type::ok) {
+            /// Statuses other than OK shouldn't have the fields set in this scope
+            {
+                std::string value;
+                if (!rep.has_header("Content-Length", value) || value == "") {
+                    rep.set_or_add_header("Content-Length", std::to_string(rep.content.size()));
+                }
             }
-        }
-        {
-            std::string value;
-            if (!rep.has_header("Content-Type", value) || value == "") {
-                rep.set_or_add_header("Content-Type", "text/plain");
+            {
+                std::string value;
+                if (!rep.has_header("Content-Type", value) || value == "") {
+                    rep.set_or_add_header("Content-Type", "text/plain");
+                }
             }
         }
     }
@@ -160,6 +152,33 @@ class request_handler : private boost::noncopyable {
         return true;
     }
 };
+
+template <>
+void request_handler::add_file<request_handler::protocol_type::http>(reply &rep, const std::string &full_path) const {
+    rep.sendfile.fd = file_desc_cache::get(full_path, O_RDONLY);
+
+    if (!rep.sendfile) {
+        /// rep.sendfile is false if the file could not be opened
+        rep = reply::stock_reply(reply::status_type::not_found);
+        return;
+    }
+    rep.status = reply::status_type::ok;
+}
+
+template <>
+void request_handler::add_file<request_handler::protocol_type::https>(reply &rep, const std::string &full_path) const {
+    std::ifstream is(full_path.c_str(), std::ios::in | std::ios::binary);
+    if (!is) {
+        rep = reply::stock_reply(reply::status_type::not_found);
+        return;
+    }
+
+    // Fill out the reply to be sent to the client.
+    rep.status = reply::status_type::ok;
+    char buf[512];
+    while (is.read(buf, sizeof(buf)).gcount() > 0)
+        rep.content.append(buf, is.gcount());
+}
 
 } // namespace server3
 } // namespace http

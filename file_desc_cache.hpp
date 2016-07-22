@@ -1,5 +1,5 @@
 //
-// connection.hpp
+// file_desc_cache.hpp
 // ~~~~~~~~~~~~~~
 //
 // Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)
@@ -10,7 +10,7 @@
 
 #ifndef FILE_DESC_CACHE
 #define FILE_DESC_CACHE
-#include "file_desc.h"
+#include "file_desc.hpp"
 #include <memory>
 #include <mutex>
 #include <unordered_map>

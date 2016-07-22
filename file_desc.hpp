@@ -1,5 +1,5 @@
 //
-// connection.hpp
+// file_desc.hpp
 // ~~~~~~~~~~~~~~
 //
 // Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)

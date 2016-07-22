@@ -1,5 +1,5 @@
 //
-// connection.hpp
+// user_handler.hpp
 // ~~~~~~~~~~~~~~
 //
 // Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)

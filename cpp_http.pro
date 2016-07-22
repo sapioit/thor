@@ -1,5 +1,5 @@
 TEMPLATE = app
-CONFIG += console c++11
+CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
@@ -15,15 +15,15 @@ HEADERS += \
     header.hpp \
     mime_types.hpp \
     reply.hpp \
-    request_handler.hpp \
     request_parser.hpp \
     request.hpp \
     server.hpp \
     user_handler.hpp \
     sendfile_op.hpp \
-    file_desc.h \
-    file_desc_cache.h \
-    ssl_connection.h
+    ssl_connection.h \
+    request_handler.hpp \
+    file_desc.hpp \
+    file_desc_cache.hpp
 
 SOURCES += \
     main.cpp

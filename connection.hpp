@@ -65,7 +65,9 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
 
             boost::shared_ptr<connection> shared = shared_from_this();
             if (result) {
-                request_handler_.handle_request(request_, reply_, sendfile_);
+                request_handler_.handle_request<request_handler::protocol_type::http>(request_, reply_);
+                if (reply_.sendfile)
+                    sendfile_ = reply_.sendfile;
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
                     strand_.wrap(std::bind(&connection::handle_write, shared, std::placeholders::_1)));

@@ -13,7 +13,9 @@
 #define HTTP_SERVER3_REPLY_HPP
 
 #include "header.hpp"
+#include "sendfile_op.hpp"
 #include <boost/asio.hpp>
+#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -98,7 +100,7 @@ static constexpr char bad_request[] = "HTTP/1.0 400 Bad Request\r\n";
 static constexpr char unauthorized[] = "HTTP/1.0 401 Unauthorized\r\n";
 static constexpr char forbidden[] = "HTTP/1.0 403 Forbidden\r\n";
 static constexpr char not_found[] = "HTTP/1.0 404 Not Found\r\n";
-static constexpr char internal_server_error[] = "HTTP/1.0 500 Internal Server Error\r\n";
+static constexpr char internal_server_error[] = "HTTP/1.0 500 Internal Server Errordddd\r\n";
 static constexpr char not_implemented[] = "HTTP/1.0 501 Not Implemented\r\n";
 static constexpr char bad_gateway[] = "HTTP/1.0 502 Bad Gateway\r\n";
 static constexpr char service_unavailable[] = "HTTP/1.0 503 Service Unavailable\r\n";
@@ -133,6 +135,8 @@ struct reply {
         service_unavailable = 503
     } status;
 
+    reply() : status(status_type::undefined) {}
+
     /// The headers to be included in the reply.
     std::vector<header> headers;
     /// TODO modify to use a hash table
@@ -140,6 +144,8 @@ struct reply {
 
     /// The content to be sent in the reply.
     std::string content;
+
+    sendfile_op sendfile;
 
     /// Convert the reply into a vector of buffers. The buffers do not own the
     /// underlying memory blocks, therefore the reply object must remain valid and
@@ -218,11 +224,8 @@ struct reply {
         reply rep;
         rep.status = status;
         rep.content = to_string(status);
-        rep.headers.resize(2);
-        rep.headers[0].name = "Content-Length";
-        rep.headers[0].value = std::to_string(rep.content.size());
-        rep.headers[1].name = "Content-Type";
-        rep.headers[1].value = "text/html";
+        rep.set_or_add_header("Content-Length", std::to_string(rep.content.size()));
+        rep.set_or_add_header("Content-Type", "text/html");
         return rep;
     }
     static boost::asio::const_buffer to_buffer(reply::status_type status) {
