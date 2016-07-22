@@ -27,7 +27,7 @@ namespace http {
 namespace server {
 
 /// Represents a single connection from a client.
-class connection : public boost::enable_shared_from_this<connection>, private boost::noncopyable {
+class connection : public virtual boost::enable_shared_from_this<connection>, private boost::noncopyable {
     public:
     /// Construct a connection with the given io_service.
     explicit connection(boost::asio::io_service &io_service, request_handler &handler)
@@ -38,9 +38,10 @@ class connection : public boost::enable_shared_from_this<connection>, private bo
 
     /// Start the first asynchronous operation for the connection.
     virtual void start() {
-        socket_.async_read_some(boost::asio::buffer(buffer_),
-                                strand_.wrap(std::bind(&connection::handle_read, shared_from_this(),
-                                                       std::placeholders::_1, std::placeholders::_2)));
+        boost::shared_ptr<connection> shared = shared_from_this();
+        socket_.async_read_some(
+            boost::asio::buffer(buffer_),
+            strand_.wrap(std::bind(&connection::handle_read, shared, std::placeholders::_1, std::placeholders::_2)));
     }
 
     virtual void shutdown() {
@@ -62,20 +63,21 @@ class connection : public boost::enable_shared_from_this<connection>, private bo
             boost::tie(result, boost::tuples::ignore) =
                 request_parser_.parse(request_, buffer_.data(), buffer_.data() + bytes_transferred);
 
+            boost::shared_ptr<connection> shared = shared_from_this();
             if (result) {
                 request_handler_.handle_request(request_, reply_, sendfile_);
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
-                    strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
+                    strand_.wrap(std::bind(&connection::handle_write, shared, std::placeholders::_1)));
             } else if (!result) {
                 reply_ = reply::stock_reply(reply::status_type::bad_request);
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
-                    strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
+                    strand_.wrap(std::bind(&connection::handle_write, shared, std::placeholders::_1)));
             } else {
                 socket_.async_read_some(boost::asio::buffer(buffer_),
-                                        strand_.wrap(std::bind(&connection::handle_read, shared_from_this(),
-                                                               std::placeholders::_1, std::placeholders::_2)));
+                                        strand_.wrap(std::bind(&connection::handle_read, shared, std::placeholders::_1,
+                                                               std::placeholders::_2)));
             }
         }
 

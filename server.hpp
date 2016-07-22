@@ -30,8 +30,9 @@ class server : private boost::noncopyable {
     /// serve up files from the given directory.
     explicit server(const std::string &address, const std::string &port, const std::string &doc_root,
                     std::size_t thread_pool_size, const std::vector<user_handler> &user_handlers)
-        : thread_pool_size_(thread_pool_size), signals_(io_service_), acceptor_(io_service_), new_connection_(),
-          request_handler_(doc_root, user_handlers), context_(io_service_, boost::asio::ssl::context::sslv23) {
+        : thread_pool_size_(thread_pool_size), signals_(io_service_), acceptor_(io_service_),
+          ssl_acceptor_(io_service_), new_connection_(), request_handler_(doc_root, user_handlers),
+          ssl_context_(io_service_, boost::asio::ssl::context::tlsv12) {
         // Register to handle the signals that indicate when the server should exit.
         // It is safe to register for the same signal multiple times in a program,
         // provided all registration for the specified signal is made through Asio.
@@ -47,12 +48,29 @@ class server : private boost::noncopyable {
         boost::asio::ip::tcp::resolver resolver(io_service_);
         boost::asio::ip::tcp::resolver::query query(address, port);
         boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
+
+        boost::asio::ip::tcp::resolver ssl_resolver(io_service_);
+        boost::asio::ip::tcp::resolver::query ssl_query(address, "8081");
+        boost::asio::ip::tcp::endpoint ssl_endpoint = *ssl_resolver.resolve(ssl_query);
+
         acceptor_.open(endpoint.protocol());
         acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
         acceptor_.bind(endpoint);
         acceptor_.listen();
+        ssl_acceptor_.open(ssl_endpoint.protocol());
+        ssl_acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+        ssl_acceptor_.bind(ssl_endpoint);
+        ssl_acceptor_.listen();
+
+        ssl_context_.set_options(boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 |
+                                 boost::asio::ssl::context::single_dh_use);
+        ssl_context_.set_password_callback(boost::bind(&server::get_password, this));
+        ssl_context_.use_certificate_chain_file("/home/vladimir/Desktop/server.crt");
+        ssl_context_.use_private_key_file("/home/vladimir/Desktop/server.key", boost::asio::ssl::context::pem);
+        ssl_context_.use_tmp_dh_file("/home/vladimir/Desktop/dh2048.pem");
 
         start_accept();
+        start_ssl_accept();
     }
 
     /// Run the server's io_service loop.
@@ -74,6 +92,12 @@ class server : private boost::noncopyable {
                                std::bind(&server::handle_accept, this, std::placeholders::_1));
     }
 
+    void start_ssl_accept() {
+        new_ssl_connection_.reset(new ssl_connection(io_service_, ssl_context_, request_handler_));
+        ssl_acceptor_.async_accept(new_ssl_connection_->lowest_layer__socket(),
+                                   std::bind(&server::handle_ssl_accept, this, std::placeholders::_1));
+    }
+
     /// Handle completion of an asynchronous accept operation.
     void handle_accept(const boost::system::error_code &e) {
         if (!e) {
@@ -82,6 +106,16 @@ class server : private boost::noncopyable {
 
         start_accept();
     }
+
+    void handle_ssl_accept(const boost::system::error_code &e) {
+        if (!e) {
+            new_ssl_connection_->start();
+        }
+
+        start_ssl_accept();
+    }
+
+    std::string get_password() const { return "test"; }
 
     /// Handle a request to stop the server.
     void handle_stop() { io_service_.stop(); }
@@ -95,17 +129,19 @@ class server : private boost::noncopyable {
     /// The signal_set is used to register for process termination notifications.
     boost::asio::signal_set signals_;
 
-    /// Acceptor used to listen for incoming connections.
+    /// Acceptors used to listen for incoming connectionss.
     boost::asio::ip::tcp::acceptor acceptor_;
+    boost::asio::ip::tcp::acceptor ssl_acceptor_;
 
     /// The next connection to be accepted.
     connection_ptr new_connection_;
+    ssl_connection_ptr new_ssl_connection_;
 
     /// The handler for all incoming requests.
     request_handler request_handler_;
 
     /// The SSL context
-    boost::asio::ssl::context context_;
+    boost::asio::ssl::context ssl_context_;
 };
 
 } // namespace server3

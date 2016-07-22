@@ -12,12 +12,13 @@
 #define FILE_DESC
 #include <boost/noncopyable.hpp>
 #include <fcntl.h>
+#include <string>
 #include <unistd.h>
 
 namespace http {
 namespace server {
 
-struct file_desc : public boost::noncopyable {
+struct file_desc : private boost::noncopyable {
     int fd;
 
     file_desc() = default;
