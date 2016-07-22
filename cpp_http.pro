@@ -22,7 +22,8 @@ HEADERS += \
     user_handler.hpp \
     sendfile_op.hpp \
     file_desc.h \
-    file_desc_cache.h
+    file_desc_cache.h \
+    ssl_connection.h
 
 SOURCES += \
     main.cpp \

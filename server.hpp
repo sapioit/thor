@@ -11,7 +11,7 @@
 #ifndef HTTP_SERVER3_SERVER_HPP
 #define HTTP_SERVER3_SERVER_HPP
 
-#include "connection.hpp"
+#include "ssl_connection.h"
 #include "request_handler.hpp"
 #include <boost/asio.hpp>
 #include <boost/noncopyable.hpp>
@@ -31,7 +31,7 @@ class server : private boost::noncopyable {
     explicit server(const std::string &address, const std::string &port, const std::string &doc_root,
                     std::size_t thread_pool_size, const std::vector<user_handler> &user_handlers)
         : thread_pool_size_(thread_pool_size), signals_(io_service_), acceptor_(io_service_), new_connection_(),
-          request_handler_(doc_root, user_handlers) {
+          request_handler_(doc_root, user_handlers), context_(io_service_, boost::asio::ssl::context::sslv23) {
         // Register to handle the signals that indicate when the server should exit.
         // It is safe to register for the same signal multiple times in a program,
         // provided all registration for the specified signal is made through Asio.
@@ -103,6 +103,9 @@ class server : private boost::noncopyable {
 
     /// The handler for all incoming requests.
     request_handler request_handler_;
+
+    /// The SSL context
+    boost::asio::ssl::context context_;
 };
 
 } // namespace server3
