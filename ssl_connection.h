@@ -12,6 +12,7 @@
 #define SSL_CONNECTION
 #include "connection.hpp"
 #include <boost/asio/ssl.hpp>
+#include <boost/bind.hpp>
 
 namespace http {
 namespace server {
@@ -21,19 +22,21 @@ class ssl_connection : public connection {
     public:
     typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
     /// Construct a connection with the given io_service.
-    explicit ssl_connection(boost::asio::io_service &io_service, boost::asio::ssl::context& context, request_handler &handler)
-        : connection(io_service, handler), strand_(io_service), socket_(io_service, context), request_handler_(handler) {}
+    explicit ssl_connection(boost::asio::io_service &io_service, boost::asio::ssl::context &context,
+                            request_handler &handler)
+        : connection(io_service, handler), strand_(io_service), socket_(io_service, context),
+          request_handler_(handler) {}
 
     /// Start the first asynchronous operation for the connection.
     void start() override {
-        socket_.async_read_some(boost::asio::buffer(buffer_),
-                                strand_.wrap(std::bind(&ssl_connection::handle_read, shared_from_this(),
-                                                       std::placeholders::_1, std::placeholders::_2)));
+        socket_.async_read_some(
+            boost::asio::buffer(buffer_),
+            strand_.wrap(boost::bind(&ssl_connection::handle_read,
+                                     boost::dynamic_pointer_cast<ssl_connection>(shared_from_this()),
+                                     boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)));
     }
 
-    void shutdown() override {
-        socket_.shutdown();
-    }
+    void shutdown() override { socket_.shutdown(); }
 
     protected:
     /// Handle completion of a read operation.
@@ -47,16 +50,22 @@ class ssl_connection : public connection {
                 request_handler_.handle_request(request_, reply_, sendfile_);
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
-                    strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
+                    strand_.wrap(boost::bind(&ssl_connection::handle_write,
+                                             boost::dynamic_pointer_cast<ssl_connection>(shared_from_this()),
+                                             boost::asio::placeholders::error)));
             } else if (!result) {
-                reply_ = reply::stock_reply(reply::bad_request);
+                reply_ = reply::stock_reply(reply::status_type::bad_request);
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
-                    strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
+                    strand_.wrap(boost::bind(&ssl_connection::handle_write,
+                                             boost::dynamic_pointer_cast<ssl_connection>(shared_from_this()),
+                                             boost::asio::placeholders::error)));
             } else {
-                socket_.async_read_some(boost::asio::buffer(buffer_),
-                                        strand_.wrap(std::bind(&ssl_connection::handle_read, shared_from_this(),
-                                                               std::placeholders::_1, std::placeholders::_2)));
+                socket_.async_read_some(
+                    boost::asio::buffer(buffer_),
+                    strand_.wrap(boost::bind(
+                        &ssl_connection::handle_read, boost::dynamic_pointer_cast<ssl_connection>(shared_from_this()),
+                        boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)));
             }
         }
 
@@ -68,9 +77,9 @@ class ssl_connection : public connection {
 
     /// Handle completion of a write operation.
     void handle_write(const boost::system::error_code &e) override {
-                // Initiate graceful connection closure.
-                if (!e)
-                    shutdown();
+        // Initiate graceful connection closure.
+        if (!e)
+            shutdown();
 
         // No new asynchronous operations are started. This means that all shared_ptr
         // references to the connection object will disappear and the object will be
@@ -81,11 +90,11 @@ class ssl_connection : public connection {
     /// Strand to ensure the connection's handlers are not called concurrently.
     boost::asio::io_service::strand strand_;
 
-private:
+    private:
     /// Socket for the connection.
     ssl_socket socket_;
-protected:
 
+    protected:
     /// The handler used to process the incoming request.
     request_handler &request_handler_;
 
@@ -110,4 +119,3 @@ typedef boost::shared_ptr<connection> connection_ptr;
 } // namespace http
 
 #endif // SSL_CONNECTION
-

@@ -49,7 +49,6 @@ class connection : public boost::enable_shared_from_this<connection>, private bo
     }
 
     protected:
-
     void handle_sendfile_done(const boost::system::error_code &e, std::size_t) {
         sendfile_ = {};
         if (!e)
@@ -110,10 +109,11 @@ class connection : public boost::enable_shared_from_this<connection>, private bo
     /// Strand to ensure the connection's handlers are not called concurrently.
     boost::asio::io_service::strand strand_;
 
-private:
+    private:
     /// Socket for the connection.
     boost::asio::ip::tcp::socket socket_;
-protected:
+
+    protected:
     /// The handler used to process the incoming request.
     request_handler &request_handler_;
 

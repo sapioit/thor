@@ -3,7 +3,7 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-LIBS += -lboost_system -lboost_filesystem -lpthread -flto
+LIBS += -lboost_system -lboost_filesystem -lpthread -lssl -lcrypto -flto
 QMAKE_CXXFLAGS += -std=c++14 -Wall
 QMAKE_CXXFLAGS_DEBUG += -O0 -g
 QMAKE_CXXFLAGS_RELEASE -= -O2
