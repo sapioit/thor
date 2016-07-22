@@ -27,7 +27,7 @@ struct file_desc_cache {
         lock_guard<mutex> hold(m);
         auto sp = cache[path].lock();
         if (!sp)
-            cache[path] = sp = std::make_shared<file_desc>(path, mode);
+            cache[path] = sp = make_shared<file_desc>(path, mode);
         return sp;
     }
 };

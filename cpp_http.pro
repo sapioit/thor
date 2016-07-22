@@ -7,7 +7,7 @@ LIBS += -lboost_system -lboost_filesystem -lpthread -flto
 QMAKE_CXXFLAGS += -std=c++14 -Wall
 QMAKE_CXXFLAGS_DEBUG += -O0 -g
 QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE += -O3 -flto
+QMAKE_CXXFLAGS_RELEASE += -s -O3 -flto
 
 
 HEADERS += \
@@ -26,5 +26,4 @@ HEADERS += \
     ssl_connection.h
 
 SOURCES += \
-    main.cpp \
-    reply.cpp
+    main.cpp

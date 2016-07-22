@@ -63,13 +63,13 @@ class request_handler : private boost::noncopyable {
         // Decode url to path.
         std::string request_path;
         if (!url_decode(req.uri, request_path)) {
-            rep = reply::stock_reply(reply::bad_request);
+            rep = reply::stock_reply(reply::status_type::bad_request);
             return;
         }
 
         // Request path must be absolute and not contain "..".
         if (request_path.empty() || request_path[0] != '/' || request_path.find("..") != std::string::npos) {
-            rep = reply::stock_reply(reply::bad_request);
+            rep = reply::stock_reply(reply::status_type::bad_request);
             return;
         }
 
@@ -81,10 +81,10 @@ class request_handler : private boost::noncopyable {
         // Open the file to send back.
         std::string full_path = doc_root_ + request_path;
         if (!boost::filesystem::exists(full_path)) {
-            rep = reply::stock_reply(reply::not_found);
+            rep = reply::stock_reply(reply::status_type::not_found);
             return;
         }
-        rep.status = reply::ok;
+        rep.status = reply::status_type::ok;
         sendfile.fd = file_desc_cache::get(full_path, O_RDONLY);
 
         rep.headers.resize(2);
@@ -115,8 +115,8 @@ class request_handler : private boost::noncopyable {
     void invoke_user_handler(const request &req, reply &rep, const user_handler &u_handler) const {
         u_handler.invoke(req, rep);
 
-        if (!rep.status)
-            rep.status = reply::ok;
+        if (rep.status == reply::status_type::undefined)
+            rep.status = reply::status_type::ok;
 
         {
             std::string value;

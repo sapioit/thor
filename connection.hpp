@@ -69,7 +69,7 @@ class connection : public boost::enable_shared_from_this<connection>, private bo
                     socket_, reply_.to_buffers(),
                     strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
             } else if (!result) {
-                reply_ = reply::stock_reply(reply::bad_request);
+                reply_ = reply::stock_reply(reply::status_type::bad_request);
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
                     strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
