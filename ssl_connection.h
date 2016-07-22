@@ -28,7 +28,7 @@ class ssl_connection : public connection {
         : connection(io_service, handler), strand_(io_service), socket_(io_service, context),
           request_handler_(handler) {}
 
-    virtual ~ssl_connection() override {}
+    virtual ~ssl_connection() {}
 
     ssl_socket::lowest_layer_type &lowest_layer__socket() { return socket_.lowest_layer(); }
 
@@ -44,35 +44,32 @@ class ssl_connection : public connection {
             socket_.async_read_some(boost::asio::buffer(buffer_),
                                     strand_.wrap(std::bind(&ssl_connection::handle_read, shared_from_this(),
                                                            std::placeholders::_1, std::placeholders::_2)));
-        } else {
-            shutdown();
         }
     }
 
     protected:
     /// Handle completion of a read operation.
     void handle_read(const boost::system::error_code &e, std::size_t bytes_transferred) override {
-        if (e)
-            shutdown();
+        if (!e) {
+            boost::tribool result;
+            boost::tie(result, boost::tuples::ignore) =
+                request_parser_.parse(request_, buffer_.data(), buffer_.data() + bytes_transferred);
 
-        boost::tribool result;
-        boost::tie(result, boost::tuples::ignore) =
-            request_parser_.parse(request_, buffer_.data(), buffer_.data() + bytes_transferred);
-
-        if (result) {
-            request_handler_.handle_request<request_handler::protocol_type::https>(request_, reply_);
-            boost::asio::async_write(
-                socket_, reply_.to_buffers(),
-                strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
-        } else if (!result) {
-            reply_ = reply::stock_reply(reply::status_type::bad_request);
-            boost::asio::async_write(
-                socket_, reply_.to_buffers(),
-                strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
-        } else {
-            socket_.async_read_some(boost::asio::buffer(buffer_),
-                                    strand_.wrap(std::bind(&ssl_connection::handle_read, shared_from_this(),
-                                                           std::placeholders::_1, std::placeholders::_2)));
+            if (result) {
+                request_handler_.handle_request<request_handler::protocol_type::https>(request_, reply_);
+                boost::asio::async_write(
+                    socket_, reply_.to_buffers(),
+                    strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
+            } else if (!result) {
+                reply_ = reply::stock_reply(reply::status_type::bad_request);
+                boost::asio::async_write(
+                    socket_, reply_.to_buffers(),
+                    strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
+            } else {
+                socket_.async_read_some(boost::asio::buffer(buffer_),
+                                        strand_.wrap(std::bind(&ssl_connection::handle_read, shared_from_this(),
+                                                               std::placeholders::_1, std::placeholders::_2)));
+            }
         }
 
         // If an error occurs then no new asynchronous operations are started. This
@@ -83,9 +80,6 @@ class ssl_connection : public connection {
 
     /// Handle completion of a write operation.
     void handle_write(const boost::system::error_code &) override {
-        /// TODO handle error
-        // Initiate graceful connection closure.
-        shutdown();
 
         // No new asynchronous operations are started. This means that all shared_ptr
         // references to the connection object will disappear and the object will be
@@ -96,13 +90,9 @@ class ssl_connection : public connection {
     void shutdown() override {
         socket_.async_shutdown(
             strand_.wrap(std::bind(&ssl_connection::handle_shutdown, shared_from_this(), std::placeholders::_1)));
-        // delete this;
     }
 
-    void handle_shutdown(const boost::system::error_code &) {
-        /// TODO handle error
-        // connection::shutdown();
-    }
+    void handle_shutdown(const boost::system::error_code &) {}
 
     void print_err(boost::system::error_code error) {
         std::string err = error.message();

@@ -19,10 +19,11 @@
 #include "sendfile_op.hpp"
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
-
+#include <iostream>
 namespace http {
 namespace server {
 
@@ -40,9 +41,10 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
 
     /// Start the first asynchronous operation for the connection.
     virtual void start() {
-        socket_.async_read_some(boost::asio::buffer(buffer_),
-                                strand_.wrap(std::bind(&connection::handle_read, shared_from_this(),
-                                                       std::placeholders::_1, std::placeholders::_2)));
+        socket_.async_read_some(
+            boost::asio::buffer(buffer_),
+            strand_.wrap(boost::bind(&connection::handle_read, shared_from_this(), boost::asio::placeholders::error,
+                                     boost::asio::placeholders::bytes_transferred)));
     }
 
     virtual void shutdown() {
@@ -51,14 +53,11 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     }
 
     protected:
-    void handle_sendfile_done(const boost::system::error_code &, std::size_t) {
-        sendfile_ = {};
-        shutdown();
-    }
+    void handle_sendfile_done(const boost::system::error_code &, std::size_t) { sendfile_ = {}; }
 
     /// Handle completion of a read operation.
     virtual void handle_read(const boost::system::error_code &e, std::size_t bytes_transferred) {
-        if (!e && bytes_transferred) {
+        if (!e) {
             boost::tribool result;
             boost::tie(result, boost::tuples::ignore) =
                 request_parser_.parse(request_, buffer_.data(), buffer_.data() + bytes_transferred);
@@ -67,23 +66,20 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
                 request_handler_.handle_request<request_handler::protocol_type::http>(request_, reply_);
                 if (reply_.sendfile)
                     sendfile_ = reply_.sendfile;
-                boost::asio::async_write(
-                    socket_, reply_.to_buffers(),
-                    strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
+                boost::asio::async_write(socket_, reply_.to_buffers(),
+                                         strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
+                                                                  boost::asio::placeholders::error)));
             } else if (!result) {
                 reply_ = reply::stock_reply(reply::status_type::bad_request);
-                boost::asio::async_write(
-                    socket_, reply_.to_buffers(),
-                    strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
+                boost::asio::async_write(socket_, reply_.to_buffers(),
+                                         strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
+                                                                  boost::asio::placeholders::error)));
             } else {
                 socket_.async_read_some(boost::asio::buffer(buffer_),
-                                        strand_.wrap(std::bind(&connection::handle_read, shared_from_this(),
-                                                               std::placeholders::_1, std::placeholders::_2)));
+                                        strand_.wrap(boost::bind(&connection::handle_read, shared_from_this(),
+                                                                 boost::asio::placeholders::error,
+                                                                 boost::asio::placeholders::bytes_transferred)));
             }
-        } else {
-            // if(e == boost::asio::error::eof || e == boost::asio::error::connection_reset) {
-            shutdown();
-            //}
         }
 
         // If an error occurs then no new asynchronous operations are started. This
@@ -97,12 +93,12 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
         if (!e) {
             if (sendfile_) {
                 sendfile_.sock_ = &socket_;
-                sendfile_.handler = std::bind(&connection::handle_sendfile_done, shared_from_this(),
-                                              std::placeholders::_1, std::placeholders::_2);
+                sendfile_.handler =
+                    boost::bind(&connection::handle_sendfile_done, shared_from_this(), boost::asio::placeholders::error,
+                                boost::asio::placeholders::bytes_transferred);
                 socket_.async_write_some(boost::asio::null_buffers(), sendfile_);
             }
         }
-        shutdown();
 
         // No new asynchronous operations are started. This means that all shared_ptr
         // references to the connection object will disappear and the object will be
