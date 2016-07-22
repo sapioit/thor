@@ -136,6 +136,7 @@ struct reply {
     } status;
 
     reply() : status(status_type::undefined) {}
+    ~reply() {}
 
     /// The headers to be included in the reply.
     std::vector<header> headers;

@@ -20,7 +20,7 @@ using http::server::request;
 using http::server::reply;
 using http::server::user_handler;
 
-void handler(const request &, reply &rep) { rep.content = "asd"; }
+void handler(const request &, reply &rep) { rep.content = std::string(10 * 1048576, 'c'); }
 
 int main(int argc, char *argv[]) {
     try {

@@ -1,13 +1,13 @@
 TEMPLATE = app
-CONFIG += console
+CONFIG -= console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-LIBS += -lboost_system -lboost_filesystem -lpthread -lssl -lcrypto -flto
+LIBS += -lboost_system -lboost_filesystem -lpthread -lssl -lcrypto
 QMAKE_CXXFLAGS += -std=c++14 -Wall
-QMAKE_CXXFLAGS_DEBUG += -O0 -g
+QMAKE_CXXFLAGS_DEBUG += -O0 -g -fno-optimize-sibling-calls -fno-omit-frame-pointer
 QMAKE_CXXFLAGS_RELEASE -= -O2
-QMAKE_CXXFLAGS_RELEASE += -s -O3 -flto
+QMAKE_CXXFLAGS_RELEASE += -s -O3
 
 
 HEADERS += \

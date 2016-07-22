@@ -33,15 +33,16 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     explicit connection(boost::asio::io_service &io_service, request_handler &handler)
         : strand_(io_service), socket_(io_service), request_handler_(handler) {}
 
+    virtual ~connection() {}
+
     /// Get the socket associated with the connection.
     virtual boost::asio::ip::tcp::socket &socket() { return socket_; }
 
     /// Start the first asynchronous operation for the connection.
     virtual void start() {
-        boost::shared_ptr<connection> shared = shared_from_this();
-        socket_.async_read_some(
-            boost::asio::buffer(buffer_),
-            strand_.wrap(std::bind(&connection::handle_read, shared, std::placeholders::_1, std::placeholders::_2)));
+        socket_.async_read_some(boost::asio::buffer(buffer_),
+                                strand_.wrap(std::bind(&connection::handle_read, shared_from_this(),
+                                                       std::placeholders::_1, std::placeholders::_2)));
     }
 
     virtual void shutdown() {
@@ -50,37 +51,39 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     }
 
     protected:
-    void handle_sendfile_done(const boost::system::error_code &e, std::size_t) {
+    void handle_sendfile_done(const boost::system::error_code &, std::size_t) {
         sendfile_ = {};
-        if (!e)
-            shutdown();
+        shutdown();
     }
 
     /// Handle completion of a read operation.
     virtual void handle_read(const boost::system::error_code &e, std::size_t bytes_transferred) {
-        if (!e) {
+        if (!e && bytes_transferred) {
             boost::tribool result;
             boost::tie(result, boost::tuples::ignore) =
                 request_parser_.parse(request_, buffer_.data(), buffer_.data() + bytes_transferred);
 
-            boost::shared_ptr<connection> shared = shared_from_this();
             if (result) {
                 request_handler_.handle_request<request_handler::protocol_type::http>(request_, reply_);
                 if (reply_.sendfile)
                     sendfile_ = reply_.sendfile;
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
-                    strand_.wrap(std::bind(&connection::handle_write, shared, std::placeholders::_1)));
+                    strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
             } else if (!result) {
                 reply_ = reply::stock_reply(reply::status_type::bad_request);
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
-                    strand_.wrap(std::bind(&connection::handle_write, shared, std::placeholders::_1)));
+                    strand_.wrap(std::bind(&connection::handle_write, shared_from_this(), std::placeholders::_1)));
             } else {
                 socket_.async_read_some(boost::asio::buffer(buffer_),
-                                        strand_.wrap(std::bind(&connection::handle_read, shared, std::placeholders::_1,
-                                                               std::placeholders::_2)));
+                                        strand_.wrap(std::bind(&connection::handle_read, shared_from_this(),
+                                                               std::placeholders::_1, std::placeholders::_2)));
             }
+        } else {
+            // if(e == boost::asio::error::eof || e == boost::asio::error::connection_reset) {
+            shutdown();
+            //}
         }
 
         // If an error occurs then no new asynchronous operations are started. This
@@ -97,12 +100,9 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
                 sendfile_.handler = std::bind(&connection::handle_sendfile_done, shared_from_this(),
                                               std::placeholders::_1, std::placeholders::_2);
                 socket_.async_write_some(boost::asio::null_buffers(), sendfile_);
-            } else {
-                // Initiate graceful connection closure.
-                if (!e)
-                    shutdown();
             }
         }
+        shutdown();
 
         // No new asynchronous operations are started. This means that all shared_ptr
         // references to the connection object will disappear and the object will be
@@ -122,7 +122,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     request_handler &request_handler_;
 
     /// Buffer for incoming data.
-    boost::array<char, 8192> buffer_;
+    boost::array<char, 5 * 8192> buffer_;
 
     /// The incoming request.
     request request_;

@@ -28,6 +28,8 @@ class ssl_connection : public connection {
         : connection(io_service, handler), strand_(io_service), socket_(io_service, context),
           request_handler_(handler) {}
 
+    virtual ~ssl_connection() override {}
+
     ssl_socket::lowest_layer_type &lowest_layer__socket() { return socket_.lowest_layer(); }
 
     /// Start the first asynchronous operation for the connection.
@@ -94,11 +96,12 @@ class ssl_connection : public connection {
     void shutdown() override {
         socket_.async_shutdown(
             strand_.wrap(std::bind(&ssl_connection::handle_shutdown, shared_from_this(), std::placeholders::_1)));
+        // delete this;
     }
 
     void handle_shutdown(const boost::system::error_code &) {
         /// TODO handle error
-        connection::shutdown();
+        // connection::shutdown();
     }
 
     void print_err(boost::system::error_code error) {
