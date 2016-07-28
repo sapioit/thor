@@ -19,6 +19,7 @@
 #include <future>
 #include <string>
 #include <vector>
+#include <stdlib.h>
 
 namespace http {
 namespace server {
@@ -28,9 +29,10 @@ class server : private boost::noncopyable {
     public:
     /// Construct the server to listen on the specified TCP address and port, and
     /// serve up files from the given directory.
-    explicit server(const std::string &address, const std::string &port, const std::string &doc_root,
-                    std::size_t thread_pool_size, const std::vector<user_handler> &user_handlers)
-        : thread_pool_size_(thread_pool_size), signals_(io_service_), acceptor_(io_service_),
+    explicit server(const std::string &address, const std::string &http_port, const std::string &https_port,
+                    const std::string &doc_root, const std::string &cert_root, std::size_t thread_pool_size,
+                    const std::vector<user_handler> &user_handlers)
+        : cert_root_(cert_root), thread_pool_size_(thread_pool_size), signals_(io_service_), acceptor_(io_service_),
           ssl_acceptor_(io_service_), new_connection_(), request_handler_(doc_root, user_handlers),
           ssl_context_(io_service_, boost::asio::ssl::context::tlsv12) {
         // Register to handle the signals that indicate when the server should exit.
@@ -46,11 +48,11 @@ class server : private boost::noncopyable {
 
         // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
         boost::asio::ip::tcp::resolver resolver(io_service_);
-        boost::asio::ip::tcp::resolver::query query(address, port);
+        boost::asio::ip::tcp::resolver::query query(address, http_port);
         boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
 
         boost::asio::ip::tcp::resolver ssl_resolver(io_service_);
-        boost::asio::ip::tcp::resolver::query ssl_query(address, "8081");
+        boost::asio::ip::tcp::resolver::query ssl_query(address, https_port);
         boost::asio::ip::tcp::endpoint ssl_endpoint = *ssl_resolver.resolve(ssl_query);
 
         acceptor_.open(endpoint.protocol());
@@ -65,9 +67,10 @@ class server : private boost::noncopyable {
         ssl_context_.set_options(boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 |
                                  boost::asio::ssl::context::single_dh_use);
         ssl_context_.set_password_callback(boost::bind(&server::get_password, this));
-        ssl_context_.use_certificate_chain_file("/home/vladimir/Desktop/server.crt");
-        ssl_context_.use_private_key_file("/home/vladimir/Desktop/server.key", boost::asio::ssl::context::pem);
-        ssl_context_.use_tmp_dh_file("/home/vladimir/Desktop/dh2048.pem");
+        auto cert_folder = get_cert_folder();
+        ssl_context_.use_certificate_chain_file(cert_folder + "/server.crt");
+        ssl_context_.use_private_key_file(cert_folder + "/server.key", boost::asio::ssl::context::pem);
+        ssl_context_.use_tmp_dh_file(cert_folder + "/dh2048.pem");
 
         start_accept();
         start_ssl_accept();
@@ -115,6 +118,8 @@ class server : private boost::noncopyable {
         start_ssl_accept();
     }
 
+    std::string get_cert_folder() const { return cert_root_; }
+
     std::string get_password() const { return "test"; }
 
     /// Handle a request to stop the server.
@@ -139,6 +144,13 @@ class server : private boost::noncopyable {
 
     /// The handler for all incoming requests.
     request_handler request_handler_;
+
+    /// The folder containing the certificate files. Must have the following files:
+    /// server.crt
+    /// server.key
+    /// dh2048.pem
+
+    std::string cert_root_;
 
     /// The SSL context
     boost::asio::ssl::context ssl_context_;

@@ -14,7 +14,13 @@
 
 #include "file_desc.hpp"
 #include <boost/asio.hpp>
+#include <stdexcept>
+#ifdef __linux__
 #include <sys/sendfile.h>
+#endif
+#ifdef _apple_
+#include <sys/uio.h>
+#endif
 
 using boost::asio::ip::tcp;
 
@@ -24,7 +30,15 @@ struct sendfile_op {
     public:
     typedef std::function<void(boost::system::error_code, std::size_t)> Handler;
     sendfile_op() = default;
-    sendfile_op(tcp::socket *s, std::shared_ptr<file_desc> fd, Handler h) : sock_(s), fd(fd), handler(h) {}
+    sendfile_op(tcp::socket *s, std::shared_ptr<file_desc> fd, Handler h) : sock_(s), fd(fd), handler(h) {
+#ifdef __linux__
+        struct stat st;
+        if (::fstat(fd->fd, &st) != -1)
+            file_len_ = st.st_size;
+        else
+            throw std::system_error{std::error_code{errno, std::system_category()}};
+#endif
+    }
 
     // Function call operator meeting WriteHandler requirements.
     // Used as the handler for the async_write_some operation.
@@ -39,7 +53,12 @@ struct sendfile_op {
             for (;;) {
                 // Try the system call.
                 errno = 0;
-                int n = native_sendfile(sock_->native_handle(), fd.get()->fd, 65536);
+#ifdef __linux__
+                std::size_t count = file_len_ - offset;
+#elif __APPLE__
+                std::size_t count = 0;
+#endif
+                int n = this->native_sendfile(sock_->native_handle(), fd.get()->fd, count);
                 ec = boost::system::error_code(n < 0 ? errno : 0, boost::asio::error::get_system_category());
                 total_bytes_transferred_ += ec ? 0 : n;
 
@@ -73,22 +92,28 @@ struct sendfile_op {
     public:
     tcp::socket *sock_;
     std::shared_ptr<file_desc> fd;
+#ifdef __linux__
     off64_t offset_;
+    std::size_t file_len_;
+#elif __APPLE__
+    off_t offset_;
+#endif
     std::size_t total_bytes_transferred_;
     Handler handler;
 
     private:
-#ifdef __linux__
     int native_sendfile(int out_fd, int in_fd, std::size_t count) {
+#ifdef __linux__
         return ::sendfile64(out_fd, in_fd, &offset_, count);
-    }
+#elif __APPLE__
+        (void)count;
+        off_t len = 0;
+        int ret = ::sendfile(in_fd, out_fd, offset_, &len, nullptr, 0);
+        offset_ += len;
+        return ret;
+
 #endif
-#ifdef __apple_
-    int native_sendfile(int out_fd, int in_fd, off_t *offset, std::size_t count) {
-        return 0;
-        /// TODO fill out
     }
-#endif
 };
 }
 }

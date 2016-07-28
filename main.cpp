@@ -25,20 +25,20 @@ void handler(const request &, reply &rep) { rep.content = std::string(10 * 10485
 int main(int argc, char *argv[]) {
     try {
         // Check command line arguments.
-        if (argc != 5) {
-            std::cerr << "Usage: http_server <address> <port> <threads> <doc_root>\n";
+        if (argc != 7) {
+            std::cerr << "Usage: http_server <address> <http_port> <https_port> <threads> <doc_root> <cert_root>\n";
             std::cerr << "  For IPv4, try:\n";
-            std::cerr << "    receiver 0.0.0.0 80 1 .\n";
+            std::cerr << "    receiver 0.0.0.0 80 443 1 . .\n";
             std::cerr << "  For IPv6, try:\n";
-            std::cerr << "    receiver 0::0 80 1 .\n";
+            std::cerr << "    receiver 0::0 80 443 1 . .\n";
             return 1;
         }
 
         std::vector<user_handler> handlers{{"GET", std::regex{"^\\/hi(\\/)?$"}, handler}};
 
         // Initialise the server.
-        std::size_t num_threads = boost::lexical_cast<std::size_t>(argv[3]);
-        http::server::server s(argv[1], argv[2], argv[4], num_threads, handlers);
+        std::size_t num_threads = boost::lexical_cast<std::size_t>(argv[4]);
+        http::server::server s(argv[1], argv[2], argv[3], argv[5], argv[6], num_threads, handlers);
 
         // Run the server until stopped.
         s.run();
