@@ -118,6 +118,8 @@ class ssl_connection : public connection {
     void handle_write(const boost::system::error_code &e) override {
         if (!e) {
             keep_alive_if_needed();
+        } else {
+            print_err(e);
         }
         // No new asynchronous operations are started. This means that all shared_ptr
         // references to the connection object will disappear and the object will be

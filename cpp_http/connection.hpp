@@ -59,7 +59,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
             return str;
         };
 
-        if (auto connection_field_ptr = request_.get_header("Connection")) {
+        if (auto connection_field_ptr = reply_.get_header("Connection")) {
             if (uppercase(connection_field_ptr->value) == "KEEP-ALIVE") {
                 request_ = {};
                 reply_ = {};
@@ -70,7 +70,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
         }
     }
 
-    void handle_sendfile_done(const boost::system::error_code &, std::size_t) {}
+    void handle_sendfile_done(const boost::system::error_code &, std::size_t) { keep_alive_if_needed(); }
 
     void drain_body(boost::system::error_code &ec) {
         auto content_len_ptr = request_.get_header("Content-Length");

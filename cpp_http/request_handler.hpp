@@ -98,6 +98,12 @@ class request_handler : private boost::noncopyable {
             /// Statuses other than OK shouldn't have the fields set in this scope
             rep.set_or_add_header("Content-Length", std::to_string(boost::filesystem::file_size(full_path)));
             rep.set_or_add_header("Content-Type", mime_types::get_mime_type(full_path));
+            {
+                std::string value;
+                if (!rep.has_header("Connection", value) || value == "") {
+                    rep.set_or_add_header("Connection", "Keep-Alive");
+                }
+            }
         }
     }
 
@@ -121,6 +127,12 @@ class request_handler : private boost::noncopyable {
                 std::string value;
                 if (!rep.has_header("Content-Type", value) || value == "") {
                     rep.set_or_add_header("Content-Type", "text/plain");
+                }
+            }
+            {
+                std::string value;
+                if (!rep.has_header("Connection", value) || value == "") {
+                    rep.set_or_add_header("Connection", "Keep-Alive");
                 }
             }
         }
