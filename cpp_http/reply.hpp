@@ -140,8 +140,6 @@ struct reply {
 
     /// The headers to be included in the reply.
     std::vector<header> headers;
-    /// TODO modify to use a hash table
-    /// std::unordered_map<std::string, std::string> headers;
 
     /// The content to be sent in the reply.
     std::string content;

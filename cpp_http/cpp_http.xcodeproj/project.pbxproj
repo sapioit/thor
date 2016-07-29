@@ -6,8 +6,12 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E7200D621D4B353C007F5DCA /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E7200D571D4B353C007F5DCA /* main.cpp */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
-		E7200D201D4A67B9007F5DCA /* CopyFiles */ = {
+		E7200D461D4B351B007F5DCA /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -19,12 +23,27 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		E7200D221D4A67B9007F5DCA /* cpp_http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cpp_http; sourceTree = BUILT_PRODUCTS_DIR; };
-		E7200D3E1D4B3191007F5DCA /* cpp_http */ = {isa = PBXFileReference; lastKnownFileType = folder; name = cpp_http; sourceTree = "<group>"; };
+		E7200D481D4B351B007F5DCA /* cpp_http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cpp_http; sourceTree = BUILT_PRODUCTS_DIR; };
+		E7200D521D4B353C007F5DCA /* char_memory_mapping_cache.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = char_memory_mapping_cache.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D531D4B353C007F5DCA /* connection.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = connection.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D541D4B353C007F5DCA /* file_descriptor_cache.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = file_descriptor_cache.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D551D4B353C007F5DCA /* file_descriptor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = file_descriptor.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D561D4B353C007F5DCA /* header.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = header.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D571D4B353C007F5DCA /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = SOURCE_ROOT; };
+		E7200D581D4B353C007F5DCA /* memory_mapping.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = memory_mapping.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D591D4B353C007F5DCA /* mime_types.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = mime_types.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D5A1D4B353C007F5DCA /* reply.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = reply.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D5B1D4B353C007F5DCA /* request_handler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = request_handler.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D5C1D4B353C007F5DCA /* request_parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = request_parser.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D5D1D4B353C007F5DCA /* request.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = request.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D5E1D4B353C007F5DCA /* sendfile_op.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = sendfile_op.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D5F1D4B353C007F5DCA /* server.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = server.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D601D4B353C007F5DCA /* ssl_connection.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ssl_connection.hpp; sourceTree = SOURCE_ROOT; };
+		E7200D611D4B353C007F5DCA /* user_handler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = user_handler.hpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		E7200D1F1D4A67B9007F5DCA /* Frameworks */ = {
+		E7200D451D4B351B007F5DCA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -34,32 +53,55 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		E7200D191D4A67B9007F5DCA = {
+		E7200D3F1D4B351B007F5DCA = {
 			isa = PBXGroup;
 			children = (
-				E7200D3E1D4B3191007F5DCA /* cpp_http */,
-				E7200D231D4A67B9007F5DCA /* Products */,
+				E7200D4A1D4B351B007F5DCA /* cpp_http */,
+				E7200D491D4B351B007F5DCA /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		E7200D231D4A67B9007F5DCA /* Products */ = {
+		E7200D491D4B351B007F5DCA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E7200D221D4A67B9007F5DCA /* cpp_http */,
+				E7200D481D4B351B007F5DCA /* cpp_http */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E7200D4A1D4B351B007F5DCA /* cpp_http */ = {
+			isa = PBXGroup;
+			children = (
+				E7200D521D4B353C007F5DCA /* char_memory_mapping_cache.hpp */,
+				E7200D531D4B353C007F5DCA /* connection.hpp */,
+				E7200D541D4B353C007F5DCA /* file_descriptor_cache.hpp */,
+				E7200D551D4B353C007F5DCA /* file_descriptor.hpp */,
+				E7200D561D4B353C007F5DCA /* header.hpp */,
+				E7200D571D4B353C007F5DCA /* main.cpp */,
+				E7200D581D4B353C007F5DCA /* memory_mapping.hpp */,
+				E7200D591D4B353C007F5DCA /* mime_types.hpp */,
+				E7200D5A1D4B353C007F5DCA /* reply.hpp */,
+				E7200D5B1D4B353C007F5DCA /* request_handler.hpp */,
+				E7200D5C1D4B353C007F5DCA /* request_parser.hpp */,
+				E7200D5D1D4B353C007F5DCA /* request.hpp */,
+				E7200D5E1D4B353C007F5DCA /* sendfile_op.hpp */,
+				E7200D5F1D4B353C007F5DCA /* server.hpp */,
+				E7200D601D4B353C007F5DCA /* ssl_connection.hpp */,
+				E7200D611D4B353C007F5DCA /* user_handler.hpp */,
+			);
+			path = cpp_http;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E7200D211D4A67B9007F5DCA /* cpp_http */ = {
+		E7200D471D4B351B007F5DCA /* cpp_http */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E7200D291D4A67B9007F5DCA /* Build configuration list for PBXNativeTarget "cpp_http" */;
+			buildConfigurationList = E7200D4F1D4B351B007F5DCA /* Build configuration list for PBXNativeTarget "cpp_http" */;
 			buildPhases = (
-				E7200D1E1D4A67B9007F5DCA /* Sources */,
-				E7200D1F1D4A67B9007F5DCA /* Frameworks */,
-				E7200D201D4A67B9007F5DCA /* CopyFiles */,
+				E7200D441D4B351B007F5DCA /* Sources */,
+				E7200D451D4B351B007F5DCA /* Frameworks */,
+				E7200D461D4B351B007F5DCA /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -67,52 +109,53 @@
 			);
 			name = cpp_http;
 			productName = cpp_http;
-			productReference = E7200D221D4A67B9007F5DCA /* cpp_http */;
+			productReference = E7200D481D4B351B007F5DCA /* cpp_http */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		E7200D1A1D4A67B9007F5DCA /* Project object */ = {
+		E7200D401D4B351B007F5DCA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = "Vladimir Voinea";
 				TargetAttributes = {
-					E7200D211D4A67B9007F5DCA = {
+					E7200D471D4B351B007F5DCA = {
 						CreatedOnToolsVersion = 7.3;
 					};
 				};
 			};
-			buildConfigurationList = E7200D1D1D4A67B9007F5DCA /* Build configuration list for PBXProject "cpp_http" */;
+			buildConfigurationList = E7200D431D4B351B007F5DCA /* Build configuration list for PBXProject "cpp_http" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = E7200D191D4A67B9007F5DCA;
-			productRefGroup = E7200D231D4A67B9007F5DCA /* Products */;
+			mainGroup = E7200D3F1D4B351B007F5DCA;
+			productRefGroup = E7200D491D4B351B007F5DCA /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E7200D211D4A67B9007F5DCA /* cpp_http */,
+				E7200D471D4B351B007F5DCA /* cpp_http */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		E7200D1E1D4A67B9007F5DCA /* Sources */ = {
+		E7200D441D4B351B007F5DCA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E7200D621D4B353C007F5DCA /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		E7200D271D4A67B9007F5DCA /* Debug */ = {
+		E7200D4D1D4B351B007F5DCA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -156,7 +199,7 @@
 			};
 			name = Debug;
 		};
-		E7200D281D4A67B9007F5DCA /* Release */ = {
+		E7200D4E1D4B351B007F5DCA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -193,10 +236,9 @@
 			};
 			name = Release;
 		};
-		E7200D2A1D4A67B9007F5DCA /* Debug */ = {
+		E7200D501D4B351B007F5DCA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					/usr/local/opt/openssl/include,
@@ -204,8 +246,8 @@
 				OTHER_LDFLAGS = (
 					"-L/usr/local/lib",
 					"-L/usr/local/opt/openssl/lib",
-					"-lcrypto",
 					"-lssl",
+					"-lcrypto",
 					"-lboost_system",
 					"-lboost_filesystem",
 				);
@@ -213,10 +255,9 @@
 			};
 			name = Debug;
 		};
-		E7200D2B1D4A67B9007F5DCA /* Release */ = {
+		E7200D511D4B351B007F5DCA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					/usr/local/opt/openssl/include,
@@ -224,8 +265,8 @@
 				OTHER_LDFLAGS = (
 					"-L/usr/local/lib",
 					"-L/usr/local/opt/openssl/lib",
-					"-lcrypto",
 					"-lssl",
+					"-lcrypto",
 					"-lboost_system",
 					"-lboost_filesystem",
 				);
@@ -236,25 +277,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E7200D1D1D4A67B9007F5DCA /* Build configuration list for PBXProject "cpp_http" */ = {
+		E7200D431D4B351B007F5DCA /* Build configuration list for PBXProject "cpp_http" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E7200D271D4A67B9007F5DCA /* Debug */,
-				E7200D281D4A67B9007F5DCA /* Release */,
+				E7200D4D1D4B351B007F5DCA /* Debug */,
+				E7200D4E1D4B351B007F5DCA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E7200D291D4A67B9007F5DCA /* Build configuration list for PBXNativeTarget "cpp_http" */ = {
+		E7200D4F1D4B351B007F5DCA /* Build configuration list for PBXNativeTarget "cpp_http" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E7200D2A1D4A67B9007F5DCA /* Debug */,
-				E7200D2B1D4A67B9007F5DCA /* Release */,
+				E7200D501D4B351B007F5DCA /* Debug */,
+				E7200D511D4B351B007F5DCA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = E7200D1A1D4A67B9007F5DCA /* Project object */;
+	rootObject = E7200D401D4B351B007F5DCA /* Project object */;
 }
