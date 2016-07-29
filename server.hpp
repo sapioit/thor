@@ -12,7 +12,7 @@
 #define HTTP_SERVER3_SERVER_HPP
 
 #include "request_handler.hpp"
-#include "ssl_connection.h"
+#include "ssl_connection.hpp"
 #include <boost/asio.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>

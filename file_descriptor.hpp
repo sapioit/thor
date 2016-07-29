@@ -1,5 +1,5 @@
 //
-// file_desc.hpp
+// file_descriptor.hpp
 // ~~~~~~~~~~~~~~
 //
 // Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)
@@ -18,15 +18,15 @@
 namespace http {
 namespace server {
 
-struct file_desc : private boost::noncopyable {
-    int fd;
+struct file_descriptor : private boost::noncopyable {
+    int value;
 
-    file_desc() = default;
-    file_desc(int fd) : fd(fd) {}
-    file_desc(const std::string &path, int mode) : fd(::open(path.c_str(), mode)) {}
-    ~file_desc() { ::close(fd); }
+    file_descriptor() = default;
+    file_descriptor(int fd) : value(fd) {}
+    file_descriptor(const std::string &path, int mode) : value(::open(path.c_str(), mode)) {}
+    ~file_descriptor() { ::close(value); }
 
-    operator int() const { return fd; }
+    bool good() const { return value != -1; }
 };
 }
 }

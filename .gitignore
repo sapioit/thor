@@ -33,3 +33,5 @@ build-*
 *.user
 *.user.*
 */.DS_Store
+*xcuserdata*
+

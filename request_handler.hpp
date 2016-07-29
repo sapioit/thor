@@ -12,12 +12,14 @@
 #ifndef HTTP_SERVER3_REQUEST_HANDLER_HPP
 #define HTTP_SERVER3_REQUEST_HANDLER_HPP
 
-#include "file_desc_cache.hpp"
+#include "char_memory_mapping_cache.hpp"
+#include "file_descriptor_cache.hpp"
 #include "mime_types.hpp"
 #include "reply.hpp"
 #include "request.hpp"
 #include "sendfile_op.hpp"
 #include "user_handler.hpp"
+#include "memory_mapping.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/noncopyable.hpp>
 #include <fstream>
@@ -155,7 +157,7 @@ class request_handler : private boost::noncopyable {
 
 template <>
 void request_handler::add_file<request_handler::protocol_type::http>(reply &rep, const std::string &full_path) const {
-    rep.sendfile.fd = file_desc_cache::get(full_path, O_RDONLY);
+    rep.sendfile.fd = file_descriptor_cache::get(full_path, O_RDONLY);
 
     if (!rep.sendfile) {
         /// rep.sendfile is false if the file could not be opened
@@ -167,17 +169,15 @@ void request_handler::add_file<request_handler::protocol_type::http>(reply &rep,
 
 template <>
 void request_handler::add_file<request_handler::protocol_type::https>(reply &rep, const std::string &full_path) const {
-    std::ifstream is(full_path.c_str(), std::ios::in | std::ios::binary);
-    if (!is) {
+    try {
+        rep.memory_mapping = char_memory_mapping_cache::get(full_path, O_RDONLY);
+    } catch (const std::system_error &) {
         rep = reply::stock_reply(reply::status_type::not_found);
         return;
     }
 
     // Fill out the reply to be sent to the client.
     rep.status = reply::status_type::ok;
-    char buf[512];
-    while (is.read(buf, sizeof(buf)).gcount() > 0)
-        rep.content.append(buf, is.gcount());
 }
 
 } // namespace server3

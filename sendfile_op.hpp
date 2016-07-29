@@ -12,7 +12,7 @@
 #ifndef SENDFILE_OP_H
 #define SENDFILE_OP_H
 
-#include "file_desc.hpp"
+#include "file_descriptor.hpp"
 #include <boost/asio.hpp>
 #include <stdexcept>
 #ifdef __linux__
@@ -30,7 +30,7 @@ struct sendfile_op {
     public:
     typedef std::function<void(boost::system::error_code, std::size_t)> Handler;
     sendfile_op() = default;
-    sendfile_op(tcp::socket *s, std::shared_ptr<file_desc> fd, Handler h) : sock_(s), fd(fd), handler(h) {
+    sendfile_op(tcp::socket *s, std::shared_ptr<file_descriptor> fd, Handler h) : sock_(s), fd(fd), handler(h) {
 #ifdef __linux__
         struct stat st;
         if (::fstat(fd->fd, &st) != -1)
@@ -58,7 +58,7 @@ struct sendfile_op {
 #elif __APPLE__
                 std::size_t count = 0;
 #endif
-                int n = this->native_sendfile(sock_->native_handle(), fd.get()->fd, count);
+                int n = this->native_sendfile(sock_->native_handle(), fd->value, count);
                 ec = boost::system::error_code(n < 0 ? errno : 0, boost::asio::error::get_system_category());
                 total_bytes_transferred_ += ec ? 0 : n;
 
@@ -91,7 +91,7 @@ struct sendfile_op {
 
     public:
     tcp::socket *sock_;
-    std::shared_ptr<file_desc> fd;
+    std::shared_ptr<file_descriptor> fd;
 #ifdef __linux__
     off64_t offset_;
     std::size_t file_len_;

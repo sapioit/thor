@@ -147,6 +147,7 @@ struct reply {
     std::string content;
 
     sendfile_op sendfile;
+    std::shared_ptr<char_memory_mapping> memory_mapping;
 
     /// Convert the reply into a vector of buffers. The buffers do not own the
     /// underlying memory blocks, therefore the reply object must remain valid and
@@ -162,7 +163,11 @@ struct reply {
             buffers.push_back(boost::asio::buffer(misc_strings::crlf));
         }
         buffers.push_back(boost::asio::buffer(misc_strings::crlf));
-        buffers.push_back(boost::asio::buffer(content));
+        if (memory_mapping)
+            buffers.push_back(boost::asio::buffer(&memory_mapping->at(0), memory_mapping->size()));
+        else
+            buffers.push_back(boost::asio::buffer(content));
+
         return buffers;
     }
 

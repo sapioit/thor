@@ -1,5 +1,5 @@
 //
-// file_desc_cache.hpp
+// file_descriptor_cache.hpp
 // ~~~~~~~~~~~~~~
 //
 // Copyright (c) 2016 Vladimir Voinea (voineavladimir@gmail.com)
@@ -10,24 +10,28 @@
 
 #ifndef FILE_DESC_CACHE
 #define FILE_DESC_CACHE
-#include "file_desc.hpp"
+#include "file_descriptor.hpp"
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <system_error>
 
 namespace http {
 namespace server {
 
-struct file_desc_cache {
-    static std::shared_ptr<file_desc> get(const std::string &path, int mode) {
+struct file_descriptor_cache {
+    static std::shared_ptr<file_descriptor> get(const std::string &path, int mode) {
         using namespace std;
-        static unordered_map<string, weak_ptr<file_desc>> cache;
+        static unordered_map<string, weak_ptr<file_descriptor>> cache;
         static mutex m;
 
         lock_guard<mutex> hold(m);
         auto sp = cache[path].lock();
-        if (!sp)
-            cache[path] = sp = make_shared<file_desc>(path, mode);
+        if (!sp) {
+            cache[path] = sp = make_shared<file_descriptor>(path, mode);
+            if (!sp->good())
+                throw std::system_error(std::error_code(EBADF, std::system_category()), "Could not open file");
+        }
         return sp;
     }
 };
