@@ -20,7 +20,7 @@ namespace server {
 
 struct user_handler {
     public:
-    typedef std::function<void(const request &, reply &)> handler;
+    typedef std::function<void(request &, reply &)> handler;
     user_handler() = default;
     user_handler(const std::string &http_method, const std::regex &pattern, handler func)
         : http_method_(http_method), pattern_(pattern), handler_func_(func) {}
@@ -29,7 +29,7 @@ struct user_handler {
     bool matches(const request &req) const { return req.method == http_method_ && std::regex_match(req.uri, pattern_); }
 
     /// Simply invokes the user handler.
-    void invoke(const request &req, reply &rep) const {
+    void invoke(request &req, reply &rep) const {
         handler_func_(std::forward<decltype(req)>(req), std::forward<decltype(rep)>(rep));
     }
 

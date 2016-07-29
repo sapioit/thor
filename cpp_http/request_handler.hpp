@@ -38,7 +38,7 @@ class request_handler : private boost::noncopyable {
         : doc_root_(doc_root), user_handlers_(user_handlers) {}
 
     /// Handle a request and produce a reply.
-    template <protocol_type protocol> void handle_request(const request &req, reply &rep) const {
+    template <protocol_type protocol> void handle_request(request &req, reply &rep) const {
         user_handler u_handler;
         if (has_user_handler(req, u_handler))
             invoke_user_handler(req, rep, u_handler);
@@ -102,7 +102,7 @@ class request_handler : private boost::noncopyable {
     }
 
     /// Invokes the user handler and fixes the missing headers
-    void invoke_user_handler(const request &req, reply &rep, const user_handler &u_handler) const {
+    void invoke_user_handler(request &req, reply &rep, const user_handler &u_handler) const {
         u_handler.invoke(req, rep);
 
         if (rep.status == reply::status_type::undefined)

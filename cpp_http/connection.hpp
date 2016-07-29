@@ -22,6 +22,7 @@
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 namespace http {
@@ -55,6 +56,27 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     protected:
     void handle_sendfile_done(const boost::system::error_code &, std::size_t) { sendfile_ = {}; }
 
+    void drain_body(boost::system::error_code &ec) {
+        auto content_len_ptr = request_.get_header("Content-Length");
+        if (content_len_ptr) {
+            auto content_length = boost::lexical_cast<std::size_t>(content_len_ptr->value);
+            auto current_body_size = request_.body.size();
+            auto left = content_length - current_body_size;
+            request_.body.resize(left);
+            sync_read(&request_.body.front(), request_.body.size(), ec);
+        } else {
+            throw std::logic_error{"Request doesn't have a body"};
+        }
+    }
+
+    virtual void sync_read(char *where, std::size_t bytes, boost::system::error_code &ec) {
+        boost::asio::read(socket_, boost::asio::buffer(where, bytes),
+                          [bytes](const boost::system::error_code &, std::size_t bytes_read) -> std::size_t {
+                              return bytes - bytes_read;
+                          },
+                          ec);
+    }
+
     /// Handle completion of a read operation.
     virtual void handle_read(const boost::system::error_code &e, std::size_t bytes_transferred) {
         if (!e) {
@@ -62,8 +84,23 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
             boost::tie(result, boost::tuples::ignore) =
                 request_parser_.parse(request_, buffer_.data(), buffer_.data() + bytes_transferred);
 
+            request_.read_body_func = [this]() {
+                try {
+                    boost::system::error_code ec;
+                    drain_body(ec);
+                    if (ec)
+                        throw std::system_error{errno, std::system_category()};
+                } catch (...) {
+                    throw;
+                }
+            };
+
             if (result) {
                 request_handler_.handle_request<request_handler::protocol_type::http>(request_, reply_);
+                if (request_.get_header("Content-Length") && !request_.body.size()) {
+                    boost::system::error_code ignored_ec;
+                    drain_body(ignored_ec);
+                }
                 if (reply_.sendfile)
                     sendfile_ = reply_.sendfile;
                 boost::asio::async_write(socket_, reply_.to_buffers(),
@@ -71,6 +108,10 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
                                                                   boost::asio::placeholders::error)));
             } else if (!result) {
                 reply_ = reply::stock_reply(reply::status_type::bad_request);
+                if (request_.get_header("Content-Length") && !request_.body.size()) {
+                    boost::system::error_code ignored_ec;
+                    drain_body(ignored_ec);
+                }
                 boost::asio::async_write(socket_, reply_.to_buffers(),
                                          strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
                                                                   boost::asio::placeholders::error)));

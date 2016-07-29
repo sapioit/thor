@@ -25,6 +25,25 @@ struct request {
     int http_version_major;
     int http_version_minor;
     std::vector<header> headers;
+    std::string body;
+
+    header *get_header(const std::string &key) {
+        auto it = std::find_if(headers.begin(), headers.end(), [&key](const header &h) { return h.name == key; });
+        return it != headers.end() ? &*it : nullptr;
+    }
+    const std::string &read_body() {
+        try {
+            read_body_func();
+            return body;
+        } catch (...) {
+            throw;
+        }
+    }
+    friend class connection;
+    friend class ssl_connection;
+
+    private:
+    std::function<void(void)> read_body_func;
 };
 
 } // namespace server3

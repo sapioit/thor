@@ -25,8 +25,7 @@ class ssl_connection : public connection {
     /// Construct a connection with the given io_service.
     explicit ssl_connection(boost::asio::io_service &io_service, boost::asio::ssl::context &context,
                             request_handler &handler)
-        : connection(io_service, handler), strand_(io_service), socket_(io_service, context),
-          request_handler_(handler) {}
+        : connection(io_service, handler), socket_(io_service, context) {}
 
     virtual ~ssl_connection() {}
 
@@ -47,6 +46,14 @@ class ssl_connection : public connection {
         }
     }
 
+    void sync_read(char *where, std::size_t bytes, boost::system::error_code &ec) override {
+        boost::asio::read(socket_, boost::asio::buffer(where, bytes),
+                          [bytes](const boost::system::error_code &, std::size_t bytes_read) -> std::size_t {
+                              return bytes - bytes_read;
+                          },
+                          ec);
+    }
+
     protected:
     /// Handle completion of a read operation.
     void handle_read(const boost::system::error_code &e, std::size_t bytes_transferred) override {
@@ -55,13 +62,32 @@ class ssl_connection : public connection {
             boost::tie(result, boost::tuples::ignore) =
                 request_parser_.parse(request_, buffer_.data(), buffer_.data() + bytes_transferred);
 
+            request_.read_body_func = [this]() {
+                try {
+                    boost::system::error_code ec;
+                    drain_body(ec);
+                    if (ec)
+                        throw std::system_error{errno, std::system_category()};
+                } catch (...) {
+                    throw;
+                }
+            };
+
             if (result) {
                 request_handler_.handle_request<request_handler::protocol_type::https>(request_, reply_);
+                if (request_.get_header("Content-Length") && !request_.body.size()) {
+                    boost::system::error_code ignored_ec;
+                    drain_body(ignored_ec);
+                }
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
                     strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
             } else if (!result) {
                 reply_ = reply::stock_reply(reply::status_type::bad_request);
+                if (request_.get_header("Content-Length") && !request_.body.size()) {
+                    boost::system::error_code ignored_ec;
+                    drain_body(ignored_ec);
+                }
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
                     strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
@@ -112,30 +138,9 @@ class ssl_connection : public connection {
         return boost::dynamic_pointer_cast<ssl_connection>(connection::shared_from_this());
     }
 
-    /// Strand to ensure the connection's handlers are not called concurrently.
-    boost::asio::io_service::strand strand_;
-
     private:
     /// Socket for the connection.
     ssl_socket socket_;
-
-    protected:
-    /// The handler used to process the incoming request.
-    request_handler &request_handler_;
-
-    /// Buffer for incoming data.
-    boost::array<char, 8192> buffer_;
-
-    /// The incoming request.
-    request request_;
-
-    /// The parser for the incoming request.
-    request_parser request_parser_;
-
-    /// The reply to be sent back to the client.
-    reply reply_;
-
-    sendfile_op sendfile_;
 };
 
 typedef boost::shared_ptr<ssl_connection> ssl_connection_ptr;

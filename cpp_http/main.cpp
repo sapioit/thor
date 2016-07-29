@@ -20,7 +20,18 @@ using http::server::request;
 using http::server::reply;
 using http::server::user_handler;
 
-void handler(const request &, reply &rep) { rep.content = std::string(10 * 1048576, 'c'); }
+void handler(request &req, reply &rep) {
+    try {
+        if (req.get_header("Content-Length")) {
+            rep.content = "<h1>";
+            rep.content += req.read_body() + "</h1>";
+        } else {
+            rep.content = "hi!";
+        }
+    } catch (const std::system_error &) {
+        std::cout << "shit!" << std::endl;
+    }
+}
 
 int main(int argc, char *argv[]) {
     try {
@@ -34,7 +45,8 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        std::vector<user_handler> handlers{{"GET", std::regex{"^\\/hi(\\/)?$"}, handler}};
+        std::vector<user_handler> handlers{{"GET", std::regex{"^\\/hi(\\/)?$"}, handler},
+                                           {"POST", std::regex{"^\\/hi(\\/)?$"}, handler}};
 
         // Initialise the server.
         std::size_t num_threads = boost::lexical_cast<std::size_t>(argv[4]);
