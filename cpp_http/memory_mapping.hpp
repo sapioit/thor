@@ -12,12 +12,12 @@
 #define MEM_MAPPING_H
 
 #include "file_descriptor.hpp"
-#include <string>
-#include <memory>
-#include <sys/mman.h>
-#include <sys/fcntl.h>
-#include <unistd.h>
 #include <boost/filesystem.hpp>
+#include <memory>
+#include <string>
+#include <sys/fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 namespace http {
 namespace server {
@@ -49,7 +49,7 @@ template <typename T> class memory_mapping {
     virtual ~memory_mapping() { unmap_close(); }
 
     void sync() const noexcept {
-        if (fd_ != -1)
+        if (fd_)
             fsync(fd_->value);
     }
 

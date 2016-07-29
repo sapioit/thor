@@ -13,8 +13,8 @@
 #include <boost/noncopyable.hpp>
 #include <fcntl.h>
 #include <string>
-#include <unistd.h>
 #include <system_error>
+#include <unistd.h>
 
 namespace http {
 namespace server {

@@ -11,8 +11,8 @@
 #ifndef CHAR_MEMORY_MAPPING_CACHE_H
 #define CHAR_MEMORY_MAPPING_CACHE_H
 
-#include "memory_mapping.hpp"
 #include "file_descriptor_cache.hpp"
+#include "memory_mapping.hpp"
 #include <fcntl.h>
 
 namespace http {

@@ -14,12 +14,12 @@
 
 #include "char_memory_mapping_cache.hpp"
 #include "file_descriptor_cache.hpp"
+#include "memory_mapping.hpp"
 #include "mime_types.hpp"
 #include "reply.hpp"
 #include "request.hpp"
 #include "sendfile_op.hpp"
 #include "user_handler.hpp"
-#include "memory_mapping.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/noncopyable.hpp>
 #include <fstream>

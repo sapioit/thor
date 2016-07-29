@@ -36,7 +36,7 @@ struct sendfile_op {
         }
 #ifdef __linux__
         struct stat st;
-        if (::fstat(fd->fd, &st) != -1)
+        if (::fstat(fd->value, &st) != -1)
             file_len_ = st.st_size;
         else
             throw std::system_error{std::error_code{errno, std::system_category()}};
@@ -57,7 +57,7 @@ struct sendfile_op {
                 // Try the system call.
                 errno = 0;
 #ifdef __linux__
-                std::size_t count = file_len_ - offset;
+                std::size_t count = file_len_ - offset_;
 #elif __APPLE__
                 std::size_t count = 0;
 #endif

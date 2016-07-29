@@ -10,10 +10,10 @@
 
 #ifndef USER_HANDLER_H
 #define USER_HANDLER_H
+#include "reply.hpp"
 #include "request.hpp"
 #include <functional>
 #include <regex>
-#include "reply.hpp"
 
 namespace http {
 namespace server {
