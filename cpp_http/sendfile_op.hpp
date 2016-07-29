@@ -30,23 +30,19 @@ struct sendfile_op {
     public:
     typedef std::function<void(boost::system::error_code, std::size_t)> Handler;
     sendfile_op() = default;
-    sendfile_op(tcp::socket *s, std::shared_ptr<file_descriptor> fd, Handler h) : sock_(s), fd(fd), handler(h) {
-        if (!fd) {
-            throw std::logic_error{"Invalid file descriptor"};
-        }
-#ifdef __linux__
-        struct stat st;
-        if (::fstat(fd->value, &st) != -1)
-            file_len_ = st.st_size;
-        else
-            throw std::system_error{std::error_code{errno, std::system_category()}};
-#endif
-    }
+    sendfile_op(tcp::socket *s, std::shared_ptr<file_descriptor> fd, Handler h) : sock_(s), fd(fd), handler(h) {}
 
     // Function call operator meeting WriteHandler requirements.
     // Used as the handler for the async_write_some operation.
     void operator()(boost::system::error_code ec, std::size_t) {
         assert(handler && sock_ && fd);
+#ifdef __linux__
+        if (!file_len_) {
+            struct stat st;
+            if (::fstat(fd->value, &st) != -1)
+                file_len_ = st.st_size;
+        }
+#endif
         // Put the underlying socket into non-blocking mode.
         if (!ec)
             if (!sock_->native_non_blocking())
