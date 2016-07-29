@@ -34,7 +34,7 @@ class request_handler : private boost::noncopyable {
     enum protocol_type { http, https };
 
     /// Construct with a directory containing files to be served.
-    explicit request_handler(const std::string &doc_root, std::vector<user_handler> user_handlers)
+    explicit request_handler(const std::string &doc_root, const std::vector<user_handler> &user_handlers)
         : doc_root_(doc_root), user_handlers_(user_handlers) {}
 
     /// Handle a request and produce a reply.
@@ -49,7 +49,7 @@ class request_handler : private boost::noncopyable {
     private:
     /// The directory containing the files to be served.
     std::string doc_root_;
-    std::vector<user_handler> user_handlers_;
+    const std::vector<user_handler> &user_handlers_;
 
     /// Checks all the user handlers and returns false if there is none or true if there is. Also, if it
     /// return strue, the second argument will contain the user handler

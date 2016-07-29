@@ -162,7 +162,7 @@ struct reply {
         }
         buffers.push_back(boost::asio::buffer(misc_strings::crlf));
         if (memory_mapping)
-            buffers.push_back(boost::asio::buffer(&memory_mapping->at(0), memory_mapping->size()));
+            buffers.push_back(boost::asio::const_buffer(&memory_mapping->at(0), memory_mapping->size()));
         else
             buffers.push_back(boost::asio::buffer(content));
 

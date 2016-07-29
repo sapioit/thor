@@ -48,13 +48,29 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
                                      boost::asio::placeholders::bytes_transferred)));
     }
 
-    virtual void shutdown() {
-        boost::system::error_code ignored_ec;
-        socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_ec);
+    protected:
+    virtual void keep_alive() { start(); }
+
+    void keep_alive_if_needed() {
+        auto uppercase = [](std::string str) -> std::string {
+            for (auto &c : str) {
+                c = std::toupper(c);
+            }
+            return str;
+        };
+
+        if (auto connection_field_ptr = request_.get_header("Connection")) {
+            if (uppercase(connection_field_ptr->value) == "KEEP-ALIVE") {
+                request_ = {};
+                reply_ = {};
+                request_parser_ = {};
+                sendfile_ = {};
+                keep_alive();
+            }
+        }
     }
 
-    protected:
-    void handle_sendfile_done(const boost::system::error_code &, std::size_t) { sendfile_ = {}; }
+    void handle_sendfile_done(const boost::system::error_code &, std::size_t) {}
 
     void drain_body(boost::system::error_code &ec) {
         auto content_len_ptr = request_.get_header("Content-Length");
@@ -96,6 +112,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
             };
 
             if (result) {
+                // The request is complete.
                 request_handler_.handle_request<request_handler::protocol_type::http>(request_, reply_);
                 if (request_.get_header("Content-Length") && !request_.body.size()) {
                     boost::system::error_code ignored_ec;
@@ -107,6 +124,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
                                          strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
                                                                   boost::asio::placeholders::error)));
             } else if (!result) {
+                // The request is malformed.
                 reply_ = reply::stock_reply(reply::status_type::bad_request);
                 if (request_.get_header("Content-Length") && !request_.body.size()) {
                     boost::system::error_code ignored_ec;
@@ -116,6 +134,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
                                          strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
                                                                   boost::asio::placeholders::error)));
             } else {
+                // Need more data.
                 socket_.async_read_some(boost::asio::buffer(buffer_),
                                         strand_.wrap(boost::bind(&connection::handle_read, shared_from_this(),
                                                                  boost::asio::placeholders::error,
@@ -138,6 +157,8 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
                     boost::bind(&connection::handle_sendfile_done, shared_from_this(), boost::asio::placeholders::error,
                                 boost::asio::placeholders::bytes_transferred);
                 socket_.async_write_some(boost::asio::null_buffers(), sendfile_);
+            } else {
+                keep_alive_if_needed();
             }
         }
 
@@ -159,7 +180,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     request_handler &request_handler_;
 
     /// Buffer for incoming data.
-    boost::array<char, 5 * 8192> buffer_;
+    boost::array<char, 8192> buffer_;
 
     /// The incoming request.
     request request_;

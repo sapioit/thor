@@ -62,10 +62,15 @@ template <typename T> class memory_mapping {
     inline type &operator[](std::size_t idx) noexcept { return *(static_cast<type *>(mem) + idx * sizeof(type)); }
 
     inline type &at(std::size_t idx) {
-        if (idx < len * sizeof(type)) {
-            return (*this)[idx];
-        } else
-            throw std::out_of_range{"Index out of bounds"};
+        if (good()) {
+            if (idx < len * sizeof(type)) {
+                return (*this)[idx];
+            } else {
+                throw std::out_of_range{"Index out of bounds"};
+            }
+        } else {
+            throw std::logic_error{"Not mapped"};
+        }
     }
 
     private:

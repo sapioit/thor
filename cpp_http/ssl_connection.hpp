@@ -38,6 +38,7 @@ class ssl_connection : public connection {
             strand_.wrap(std::bind(&ssl_connection::handle_handshake, shared_from_this(), std::placeholders::_1)));
     }
 
+    private:
     void handle_handshake(const boost::system::error_code &error) {
         if (!error) {
             socket_.async_read_some(boost::asio::buffer(buffer_),
@@ -55,6 +56,12 @@ class ssl_connection : public connection {
     }
 
     protected:
+    void keep_alive() override {
+        socket_.async_read_some(boost::asio::buffer(buffer_),
+                                strand_.wrap(std::bind(&ssl_connection::handle_read, shared_from_this(),
+                                                       std::placeholders::_1, std::placeholders::_2)));
+    }
+
     /// Handle completion of a read operation.
     void handle_read(const boost::system::error_code &e, std::size_t bytes_transferred) override {
         if (!e) {
@@ -74,6 +81,7 @@ class ssl_connection : public connection {
             };
 
             if (result) {
+                // The request is complete.
                 request_handler_.handle_request<request_handler::protocol_type::https>(request_, reply_);
                 if (request_.get_header("Content-Length") && !request_.body.size()) {
                     boost::system::error_code ignored_ec;
@@ -83,6 +91,7 @@ class ssl_connection : public connection {
                     socket_, reply_.to_buffers(),
                     strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
             } else if (!result) {
+                // The request is malformed.
                 reply_ = reply::stock_reply(reply::status_type::bad_request);
                 if (request_.get_header("Content-Length") && !request_.body.size()) {
                     boost::system::error_code ignored_ec;
@@ -92,6 +101,7 @@ class ssl_connection : public connection {
                     socket_, reply_.to_buffers(),
                     strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
             } else {
+                // Need more data.
                 socket_.async_read_some(boost::asio::buffer(buffer_),
                                         strand_.wrap(std::bind(&ssl_connection::handle_read, shared_from_this(),
                                                                std::placeholders::_1, std::placeholders::_2)));
@@ -105,17 +115,14 @@ class ssl_connection : public connection {
     }
 
     /// Handle completion of a write operation.
-    void handle_write(const boost::system::error_code &) override {
-
+    void handle_write(const boost::system::error_code &e) override {
+        if (!e) {
+            keep_alive_if_needed();
+        }
         // No new asynchronous operations are started. This means that all shared_ptr
         // references to the connection object will disappear and the object will be
         // destroyed automatically after this handler returns. The connection class's
         // destructor closes the socket.
-    }
-
-    void shutdown() override {
-        socket_.async_shutdown(
-            strand_.wrap(std::bind(&ssl_connection::handle_shutdown, shared_from_this(), std::placeholders::_1)));
     }
 
     void handle_shutdown(const boost::system::error_code &) {}
