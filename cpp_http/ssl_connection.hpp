@@ -83,20 +83,14 @@ class ssl_connection : public connection {
             if (result) {
                 // The request is complete.
                 request_handler_.handle_request<request_handler::protocol_type::https>(request_, reply_);
-                if (request_.get_header("Content-Length") && !request_.body.size()) {
-                    boost::system::error_code ignored_ec;
-                    drain_body(ignored_ec);
-                }
+                drain_body_if_needed();
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
                     strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));
             } else if (!result) {
                 // The request is malformed.
                 reply_ = reply::stock_reply(reply::status_type::bad_request);
-                if (request_.get_header("Content-Length") && !request_.body.size()) {
-                    boost::system::error_code ignored_ec;
-                    drain_body(ignored_ec);
-                }
+                drain_body_if_needed();
                 boost::asio::async_write(
                     socket_, reply_.to_buffers(),
                     strand_.wrap(std::bind(&ssl_connection::handle_write, shared_from_this(), std::placeholders::_1)));

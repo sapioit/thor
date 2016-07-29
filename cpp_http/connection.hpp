@@ -52,13 +52,6 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     virtual void keep_alive() { start(); }
 
     void keep_alive_if_needed() {
-        auto uppercase = [](std::string str) -> std::string {
-            for (auto &c : str) {
-                c = std::toupper(c);
-            }
-            return str;
-        };
-
         if (auto connection_field_ptr = reply_.get_header("Connection")) {
             if (uppercase(connection_field_ptr->value) == "KEEP-ALIVE") {
                 request_ = {};
@@ -82,6 +75,13 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
             sync_read(&request_.body.front(), request_.body.size(), ec);
         } else {
             throw std::logic_error{"Request doesn't have a body"};
+        }
+    }
+
+    void drain_body_if_needed() {
+        if (request_.get_header("Content-Length") && !request_.body.size()) {
+            boost::system::error_code ignored_ec;
+            drain_body(ignored_ec);
         }
     }
 
@@ -114,10 +114,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
             if (result) {
                 // The request is complete.
                 request_handler_.handle_request<request_handler::protocol_type::http>(request_, reply_);
-                if (request_.get_header("Content-Length") && !request_.body.size()) {
-                    boost::system::error_code ignored_ec;
-                    drain_body(ignored_ec);
-                }
+                drain_body_if_needed();
                 if (reply_.sendfile)
                     sendfile_ = reply_.sendfile;
                 boost::asio::async_write(socket_, reply_.to_buffers(),
@@ -126,10 +123,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
             } else if (!result) {
                 // The request is malformed.
                 reply_ = reply::stock_reply(reply::status_type::bad_request);
-                if (request_.get_header("Content-Length") && !request_.body.size()) {
-                    boost::system::error_code ignored_ec;
-                    drain_body(ignored_ec);
-                }
+                drain_body_if_needed();
                 boost::asio::async_write(socket_, reply_.to_buffers(),
                                          strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
                                                                   boost::asio::placeholders::error)));

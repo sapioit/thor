@@ -31,6 +31,11 @@ struct request {
         auto it = std::find_if(headers.begin(), headers.end(), [&key](const header &h) { return h.name == key; });
         return it != headers.end() ? &*it : nullptr;
     }
+
+    const header *get_header(const std::string &key) const {
+        auto it = std::find_if(headers.cbegin(), headers.cend(), [&key](const header &h) { return h.name == key; });
+        return it != headers.end() ? &*it : nullptr;
+    }
     const std::string &read_body() {
         try {
             read_body_func();

@@ -169,17 +169,8 @@ struct reply {
         return buffers;
     }
 
-    /// Checks to see if the response has a header set. Return false if it doesn't,
-    /// or true if it has and sets the second argument to its value.
-    bool has_header(const std::string &key, std::string &value) const {
-        auto it = std::find_if(headers.begin(), headers.end(), [&key](const header &h) { return h.name == key; });
-        if (it != headers.end()) {
-            value = it->value;
-            return true;
-        }
-        return false;
-    }
-
+    /// Checks to see if the response has a header set. Returns a pointer to
+    /// the header object, or null if it doesn't exist
     header *get_header(const std::string &key) {
         auto it = std::find_if(headers.begin(), headers.end(), [&key](const header &h) { return h.name == key; });
         return it != headers.end() ? &*it : nullptr;
@@ -187,7 +178,7 @@ struct reply {
 
     /// Sets a header if it already exists, or creates it
     /// FIXME: verify if the header exists, don't just push it
-    void set_or_add_header(const std::string &key, const std::string &value) { headers.emplace_back(key, value); }
+    void add_header(const std::string &key, const std::string &value) { headers.emplace_back(key, value); }
 
     static std::string to_string(reply::status_type status) {
         switch (status) {
@@ -233,9 +224,9 @@ struct reply {
         reply rep;
         rep.status = status;
         rep.content = to_string(status);
-        rep.set_or_add_header("Content-Length", std::to_string(rep.content.size()));
-        rep.set_or_add_header("Content-Type", "text/html");
-        rep.set_or_add_header("Connection", "Close");
+        rep.add_header("Content-Length", std::to_string(rep.content.size()));
+        rep.add_header("Content-Type", "text/html");
+        rep.add_header("Connection", "Close");
         return rep;
     }
     static boost::asio::const_buffer to_buffer(reply::status_type status) {

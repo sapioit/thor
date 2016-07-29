@@ -28,7 +28,8 @@ HEADERS += \
     cpp_http/file_descriptor.hpp \
     cpp_http/ssl_connection.hpp \
     cpp_http/char_memory_mapping_cache.hpp \
-    cpp_http/memory_mapping.hpp
+    cpp_http/memory_mapping.hpp \
+    cpp_http/string_utils.hpp
 
 SOURCES += \
     cpp_http/main.cpp
