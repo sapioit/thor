@@ -157,27 +157,25 @@ class request_handler : private boost::noncopyable {
 
 template <>
 void request_handler::add_file<request_handler::protocol_type::http>(reply &rep, const std::string &full_path) const {
-    rep.sendfile.fd = file_descriptor_cache::get(full_path, O_RDONLY);
-
-    if (!rep.sendfile) {
-        /// rep.sendfile is false if the file could not be opened
+    try {
+        rep.sendfile.fd = file_descriptor_cache::get(full_path, O_RDONLY);
+        rep.status = reply::status_type::ok;
+    } catch (const std::logic_error &) {
         rep = reply::stock_reply(reply::status_type::not_found);
         return;
     }
-    rep.status = reply::status_type::ok;
 }
 
 template <>
 void request_handler::add_file<request_handler::protocol_type::https>(reply &rep, const std::string &full_path) const {
     try {
         rep.memory_mapping = char_memory_mapping_cache::get(full_path, O_RDONLY);
+        // Fill out the reply to be sent to the client.
+        rep.status = reply::status_type::ok;
     } catch (const std::system_error &) {
         rep = reply::stock_reply(reply::status_type::not_found);
         return;
     }
-
-    // Fill out the reply to be sent to the client.
-    rep.status = reply::status_type::ok;
 }
 
 } // namespace server3

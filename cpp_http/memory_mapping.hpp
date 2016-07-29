@@ -76,6 +76,8 @@ template <typename T> class memory_mapping {
     void map_in_mem() {
         int fd = fd_->value;
         mem = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
+        if (!good())
+            throw std::system_error(std::error_code(errno, std::system_category()));
     }
 
     void unmap_close() {

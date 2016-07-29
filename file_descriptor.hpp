@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <string>
 #include <unistd.h>
+#include <system_error>
 
 namespace http {
 namespace server {
@@ -23,7 +24,10 @@ struct file_descriptor : private boost::noncopyable {
 
     file_descriptor() = default;
     file_descriptor(int fd) : value(fd) {}
-    file_descriptor(const std::string &path, int mode) : value(::open(path.c_str(), mode)) {}
+    file_descriptor(const std::string &path, int mode) : value(::open(path.c_str(), mode)) {
+        if (!good())
+            throw std::system_error(std::error_code(errno, std::system_category()));
+    }
     ~file_descriptor() { ::close(value); }
 
     bool good() const { return value != -1; }

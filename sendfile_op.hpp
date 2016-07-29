@@ -31,6 +31,9 @@ struct sendfile_op {
     typedef std::function<void(boost::system::error_code, std::size_t)> Handler;
     sendfile_op() = default;
     sendfile_op(tcp::socket *s, std::shared_ptr<file_descriptor> fd, Handler h) : sock_(s), fd(fd), handler(h) {
+        if (!fd) {
+            throw std::logic_error{"Invalid file descriptor"};
+        }
 #ifdef __linux__
         struct stat st;
         if (::fstat(fd->fd, &st) != -1)

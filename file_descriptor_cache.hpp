@@ -28,9 +28,11 @@ struct file_descriptor_cache {
         lock_guard<mutex> hold(m);
         auto sp = cache[path].lock();
         if (!sp) {
-            cache[path] = sp = make_shared<file_descriptor>(path, mode);
-            if (!sp->good())
-                throw std::system_error(std::error_code(EBADF, std::system_category()), "Could not open file");
+            try {
+                cache[path] = sp = make_shared<file_descriptor>(path, mode);
+            } catch (const std::system_error &) {
+                throw;
+            }
         }
         return sp;
     }

@@ -29,13 +29,11 @@ struct char_memory_mapping_cache {
             try {
                 cache[path] = sp = make_shared<char_memory_mapping>(file_descriptor_cache::get(path, mode),
                                                                     boost::filesystem::file_size(path));
-                if (!sp->good()) {
-                    throw std::system_error(std::error_code(EBADF, std::system_category()), "Invalid file descriptor");
-                }
             } catch (const std::system_error &) {
                 throw;
             }
         }
+
         return sp;
     }
 };
