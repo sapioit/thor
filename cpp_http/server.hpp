@@ -32,9 +32,9 @@ class server : private boost::noncopyable {
     explicit server(const std::string &address, const std::string &http_port, const std::string &https_port,
                     const std::string &doc_root, const std::string &cert_root, std::size_t thread_pool_size,
                     const std::vector<user_handler> &user_handlers)
-        : cert_root_(cert_root), thread_pool_size_(thread_pool_size), signals_(io_service_), acceptor_(io_service_),
+        : thread_pool_size_(thread_pool_size), signals_(io_service_), acceptor_(io_service_),
           ssl_acceptor_(io_service_), new_connection_(), request_handler_(doc_root, user_handlers),
-          ssl_context_(io_service_, boost::asio::ssl::context::tlsv12) {
+          cert_root_(cert_root), ssl_context_(io_service_, boost::asio::ssl::context::tlsv12) {
         // Register to handle the signals that indicate when the server should exit.
         // It is safe to register for the same signal multiple times in a program,
         // provided all registration for the specified signal is made through Asio.

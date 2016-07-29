@@ -3,8 +3,8 @@ CONFIG -= console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-LIBS += -lboost_system -lboost_filesystem -lpthread -lssl -lcrypto
-QMAKE_CXXFLAGS += -std=c++14 -Wall
+LIBS += -L/usr/local/lib -L/usr/local/opt/openssl/lib -lboost_system -lboost_filesystem -lpthread -lssl -lcrypto
+QMAKE_CXXFLAGS += -std=c++14 -Wall -I/usr/local/include -I/usr/local/opt/openssl/include
 QMAKE_CXXFLAGS_DEBUG += -O0 -g -fno-optimize-sibling-calls -fno-omit-frame-pointer
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -s -O3
