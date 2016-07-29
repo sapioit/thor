@@ -6,10 +6,6 @@
 	objectVersion = 46;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		E7200D3A1D4A67DD007F5DCA /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E7200D301D4A67DD007F5DCA /* main.cpp */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		E7200D201D4A67B9007F5DCA /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -24,22 +20,7 @@
 
 /* Begin PBXFileReference section */
 		E7200D221D4A67B9007F5DCA /* cpp_http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cpp_http; sourceTree = BUILT_PRODUCTS_DIR; };
-		E7200D2C1D4A67DD007F5DCA /* connection.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = connection.hpp; path = ../connection.hpp; sourceTree = "<group>"; };
-		E7200D2D1D4A67DD007F5DCA /* file_descriptor_cache.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = file_descriptor_cache.hpp; path = ../file_descriptor_cache.hpp; sourceTree = "<group>"; };
-		E7200D2E1D4A67DD007F5DCA /* file_descriptor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = file_descriptor.hpp; path = ../file_descriptor.hpp; sourceTree = "<group>"; };
-		E7200D2F1D4A67DD007F5DCA /* header.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = header.hpp; path = ../header.hpp; sourceTree = "<group>"; };
-		E7200D301D4A67DD007F5DCA /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../main.cpp; sourceTree = "<group>"; };
-		E7200D311D4A67DD007F5DCA /* mime_types.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = mime_types.hpp; path = ../mime_types.hpp; sourceTree = "<group>"; };
-		E7200D321D4A67DD007F5DCA /* reply.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = reply.hpp; path = ../reply.hpp; sourceTree = "<group>"; };
-		E7200D331D4A67DD007F5DCA /* request_handler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = request_handler.hpp; path = ../request_handler.hpp; sourceTree = "<group>"; };
-		E7200D341D4A67DD007F5DCA /* request_parser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = request_parser.hpp; path = ../request_parser.hpp; sourceTree = "<group>"; };
-		E7200D351D4A67DD007F5DCA /* request.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = request.hpp; path = ../request.hpp; sourceTree = "<group>"; };
-		E7200D361D4A67DD007F5DCA /* sendfile_op.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = sendfile_op.hpp; path = ../sendfile_op.hpp; sourceTree = "<group>"; };
-		E7200D371D4A67DD007F5DCA /* server.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = server.hpp; path = ../server.hpp; sourceTree = "<group>"; };
-		E7200D381D4A67DD007F5DCA /* ssl_connection.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ssl_connection.hpp; path = ../ssl_connection.hpp; sourceTree = "<group>"; };
-		E7200D391D4A67DD007F5DCA /* user_handler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = user_handler.hpp; path = ../user_handler.hpp; sourceTree = "<group>"; };
-		E7200D3B1D4A7C42007F5DCA /* memory_mapping.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = memory_mapping.hpp; sourceTree = "<group>"; };
-		E7200D3C1D4A7F26007F5DCA /* char_memory_mapping_cache.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = char_memory_mapping_cache.hpp; sourceTree = "<group>"; };
+		E7200D3E1D4B3191007F5DCA /* cpp_http */ = {isa = PBXFileReference; lastKnownFileType = folder; name = cpp_http; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,22 +37,7 @@
 		E7200D191D4A67B9007F5DCA = {
 			isa = PBXGroup;
 			children = (
-				E7200D3C1D4A7F26007F5DCA /* char_memory_mapping_cache.hpp */,
-				E7200D2C1D4A67DD007F5DCA /* connection.hpp */,
-				E7200D2D1D4A67DD007F5DCA /* file_descriptor_cache.hpp */,
-				E7200D2E1D4A67DD007F5DCA /* file_descriptor.hpp */,
-				E7200D2F1D4A67DD007F5DCA /* header.hpp */,
-				E7200D301D4A67DD007F5DCA /* main.cpp */,
-				E7200D311D4A67DD007F5DCA /* mime_types.hpp */,
-				E7200D321D4A67DD007F5DCA /* reply.hpp */,
-				E7200D331D4A67DD007F5DCA /* request_handler.hpp */,
-				E7200D341D4A67DD007F5DCA /* request_parser.hpp */,
-				E7200D351D4A67DD007F5DCA /* request.hpp */,
-				E7200D361D4A67DD007F5DCA /* sendfile_op.hpp */,
-				E7200D371D4A67DD007F5DCA /* server.hpp */,
-				E7200D3B1D4A7C42007F5DCA /* memory_mapping.hpp */,
-				E7200D381D4A67DD007F5DCA /* ssl_connection.hpp */,
-				E7200D391D4A67DD007F5DCA /* user_handler.hpp */,
+				E7200D3E1D4B3191007F5DCA /* cpp_http */,
 				E7200D231D4A67B9007F5DCA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -140,7 +106,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E7200D3A1D4A67DD007F5DCA /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +252,7 @@
 				E7200D2B1D4A67B9007F5DCA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

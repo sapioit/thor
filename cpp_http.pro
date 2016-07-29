@@ -11,19 +11,24 @@ QMAKE_CXXFLAGS_RELEASE += -s -O3
 
 
 HEADERS += \
-    connection.hpp \
-    header.hpp \
-    mime_types.hpp \
-    reply.hpp \
-    request_parser.hpp \
-    request.hpp \
-    server.hpp \
-    user_handler.hpp \
-    sendfile_op.hpp \
-    ssl_connection.h \
-    request_handler.hpp \
-    file_desc.hpp \
-    file_desc_cache.hpp
+    cpp_http/connection.hpp \
+    cpp_http/header.hpp \
+    cpp_http/mime_types.hpp \
+    cpp_http/reply.hpp \
+    cpp_http/request_parser.hpp \
+    cpp_http/request.hpp \
+    cpp_http/server.hpp \
+    cpp_http/user_handler.hpp \
+    cpp_http/sendfile_op.hpp \
+    cpp_http/ssl_connection.h \
+    cpp_http/request_handler.hpp \
+    cpp_http/file_desc.hpp \
+    cpp_http/file_desc_cache.hpp \
+    cpp_http/file_descriptor_cache.hpp \
+    cpp_http/file_descriptor.hpp \
+    cpp_http/ssl_connection.hpp \
+    cpp_http/char_memory_mapping_cache.hpp \
+    cpp_http/memory_mapping.hpp
 
 SOURCES += \
-    main.cpp
+    cpp_http/main.cpp
