@@ -39,7 +39,6 @@ static std::string make_link(const std::string &uri, const boost::filesystem::pa
     if (boost::filesystem::is_directory(p))
         link += '/';
 
-    std::cout << link << std::endl;
     return link;
 }
 
@@ -94,6 +93,7 @@ static std::string parent_directory_anchor(std::string uri, std::string root_pat
     std::string link = '/' + relative.string();
     if (relative.string() != "")
         link += "/";
+
     std::ostringstream stream;
     stream << "<a href=\"" << link << "\">"
            << ".."
@@ -102,12 +102,12 @@ static std::string parent_directory_anchor(std::string uri, std::string root_pat
     return stream.str();
 }
 
-void list_directory(const request &req, reply &reply, const std::string &root_path) {
+void list_directory(const request &req, reply &reply, const std::string &doc_root) {
     try {
-        boost::filesystem::path root = root_path + req.uri;
+        boost::filesystem::path root = doc_root + req.uri;
         std::ostringstream stream;
         stream << "<h1>Directory listing of " + req.uri + "</h1>";
-        stream << parent_directory_anchor(req.uri, root_path);
+        stream << parent_directory_anchor(req.uri, doc_root);
         for (auto it : boost::filesystem::directory_iterator(root)) {
             try {
                 boost::filesystem::path p = it;

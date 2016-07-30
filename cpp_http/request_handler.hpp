@@ -40,9 +40,8 @@ class request_handler : private boost::noncopyable {
 
     /// Handle a request and produce a reply.
     template <protocol_type protocol> void handle_request(request &req, reply &rep) const {
-        user_handler u_handler;
-        if (has_user_handler(req, u_handler))
-            invoke_user_handler(req, rep, u_handler);
+        if (auto handler = get_user_handler(req))
+            invoke_user_handler(req, rep, handler);
         else
             handle_request_internally<protocol>(req, rep);
     }
@@ -54,14 +53,13 @@ class request_handler : private boost::noncopyable {
 
     /// Checks all the user handlers and returns false if there is none or true if there is. Also, if it
     /// return strue, the second argument will contain the user handler
-    bool has_user_handler(const request &req, user_handler &handler) const {
-        auto it = std::find_if(user_handlers_.begin(), user_handlers_.end(),
+    const user_handler *get_user_handler(const request &req) const {
+        auto it = std::find_if(user_handlers_.cbegin(), user_handlers_.cend(),
                                [&req](const user_handler &u_handler) { return u_handler.matches(req); });
-        if (it != user_handlers_.end()) {
-            handler = *it;
-            return true;
+        if (it != user_handlers_.cend()) {
+            return &*it;
         }
-        return false;
+        return nullptr;
     }
 
     /// Processes the request and returns either a stock resposne or a file
@@ -109,8 +107,8 @@ class request_handler : private boost::noncopyable {
     }
 
     /// Invokes the user handler and fixes the missing headers
-    void invoke_user_handler(request &req, reply &rep, const user_handler &u_handler) const {
-        u_handler.invoke(req, rep);
+    void invoke_user_handler(request &req, reply &rep, const user_handler *u_handler) const {
+        u_handler->invoke(req, rep);
 
         if (rep.status == reply::status_type::undefined)
             rep.status = reply::status_type::ok;
