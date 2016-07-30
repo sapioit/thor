@@ -49,11 +49,11 @@ struct sendfile_op {
                 sock_->native_non_blocking(true, ec);
 
         if (!ec) {
-            for (;;) {
+            for (; offset_ <= file_len_;) {
                 // Try the system call.
                 errno = 0;
 #ifdef __linux__
-                std::size_t count = file_len_ - offset_;
+                auto count = file_len_ - offset_;
 #elif __APPLE__
                 std::size_t count = 0;
 #endif
@@ -93,7 +93,7 @@ struct sendfile_op {
     std::shared_ptr<file_descriptor> fd;
 #ifdef __linux__
     off64_t offset_;
-    std::size_t file_len_;
+    off64_t file_len_;
 #elif __APPLE__
     off_t offset_;
 #endif

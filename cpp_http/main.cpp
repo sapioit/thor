@@ -9,6 +9,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include "directory_listing.hpp"
 #include "server.hpp"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -20,14 +21,16 @@ using http::server::request;
 using http::server::reply;
 using http::server::user_handler;
 
-void handler(request &req, reply &rep) {
+void folder_1_trailing_slash(request &req, reply &rep) {
     try {
-        if (req.get_header("Content-Length")) {
-            rep.content = "<h1>";
-            rep.content += req.read_body() + "</h1>";
-        } else {
-            rep.content = "hi!";
-        }
+        rep.content = req.uri + "one trailing slash";
+    } catch (const std::system_error &) {
+        std::cout << "shit!" << std::endl;
+    }
+}
+void folder_many_trailing_slashes(request &req, reply &rep) {
+    try {
+        rep.content = req.uri + "many trailing slashes";
     } catch (const std::system_error &) {
         std::cout << "shit!" << std::endl;
     }
@@ -45,8 +48,12 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        std::vector<user_handler> handlers{{"GET", std::regex{"^\\/hi(\\/)?$"}, handler},
-                                           {"POST", std::regex{"^\\/hi(\\/)?$"}, handler}};
+        std::vector<user_handler> handlers{
+            // Ending with one trailing slash
+            {"GET", std::regex{"^[\\/]{0,1}[\\w]*[\\/]?$"},
+             [argv](const auto &request, auto &reply) { list_directory(request, reply, argv[5]); }},
+            // Ending with many trailing slashes
+            {"GET", std::regex{"^[\\/]{0,1}[\\w]*[\\/]+$"}, folder_many_trailing_slashes}};
 
         // Initialise the server.
         std::size_t num_threads = boost::lexical_cast<std::size_t>(argv[4]);

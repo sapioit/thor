@@ -29,7 +29,8 @@ HEADERS += \
     cpp_http/ssl_connection.hpp \
     cpp_http/char_memory_mapping_cache.hpp \
     cpp_http/memory_mapping.hpp \
-    cpp_http/string_utils.hpp
+    cpp_http/string_utils.hpp \
+    cpp_http/directory_listing.hpp
 
 SOURCES += \
     cpp_http/main.cpp

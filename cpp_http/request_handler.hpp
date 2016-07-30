@@ -118,13 +118,13 @@ class request_handler : private boost::noncopyable {
         /// Set the necessary fields that haven't been set by the user handler
         if (rep.status == reply::status_type::ok) {
             /// Statuses other than OK shouldn't have the fields set in this scope
-            if (!req.get_header("Content-Length")) {
+            if (!rep.get_header("Content-Length")) {
                 rep.add_header("Content-Length", std::to_string(rep.content.size()));
             }
-            if (!req.get_header("Content-Type")) {
+            if (!rep.get_header("Content-Type")) {
                 rep.add_header("Content-Type", "text/plain");
             }
-            auto header = req.get_header("Connection");
+            auto header = rep.get_header("Connection");
             if (!header || uppercase(header->value) == "KEEP-ALIVE") {
                 rep.add_header("Connection", "Keep-Alive");
             } else if (header && uppercase(header->value) == "CLOSE") {

@@ -13,6 +13,7 @@
 #define HTTP_SERVER3_REPLY_HPP
 
 #include "header.hpp"
+#include "memory_mapping.hpp"
 #include "sendfile_op.hpp"
 #include <boost/asio.hpp>
 #include <iostream>
