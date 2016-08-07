@@ -14,8 +14,8 @@
 
 #include "file_descriptor.hpp"
 #include <boost/asio.hpp>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 #ifdef __linux__
 #include <sys/sendfile.h>
 #endif
@@ -30,7 +30,8 @@ struct sendfile_op {
     public:
     typedef std::function<void(boost::system::error_code, std::size_t)> Handler;
     sendfile_op() : offset_(0), file_len_(0), total_bytes_transferred_(0) {}
-    sendfile_op(tcp::socket *s, std::shared_ptr<file_descriptor> fd, Handler h) : sock_(s), fd(fd), handler(h), offset_(0), file_len_(0), total_bytes_transferred_(0) {}
+    sendfile_op(tcp::socket *s, std::shared_ptr<file_descriptor> fd, Handler h)
+        : sock_(s), fd(fd), handler(h), offset_(0), file_len_(0), total_bytes_transferred_(0) {}
 
     // Function call operator meeting WriteHandler requirements.
     // Used as the handler for the async_write_some operation.
@@ -38,7 +39,7 @@ struct sendfile_op {
         assert(handler && sock_ && fd);
 #ifdef __linux__
         if (!file_len_) {
-        	file_len_ = boost::filesystem::file_size(fd->path);
+            file_len_ = boost::filesystem::file_size(fd->path);
         }
 #endif
         // Put the underlying socket into non-blocking mode.
