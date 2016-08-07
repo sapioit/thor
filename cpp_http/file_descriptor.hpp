@@ -21,10 +21,9 @@ namespace server {
 
 struct file_descriptor : private boost::noncopyable {
     int value;
-
+    std::string path;
     file_descriptor() = default;
-    file_descriptor(int fd) : value(fd) {}
-    file_descriptor(const std::string &path, int mode) : value(::open(path.c_str(), mode)) {
+    file_descriptor(const std::string &path, int mode) : value(::open(path.c_str(), mode)), path(path) {
         if (!good())
             throw std::system_error(std::error_code(errno, std::system_category()));
     }

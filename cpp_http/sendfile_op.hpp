@@ -15,13 +15,13 @@
 #include "file_descriptor.hpp"
 #include <boost/asio.hpp>
 #include <stdexcept>
+#include <iostream>
 #ifdef __linux__
 #include <sys/sendfile.h>
 #endif
 #ifdef _apple_
 #include <sys/uio.h>
 #endif
-
 using boost::asio::ip::tcp;
 
 namespace http {
@@ -29,8 +29,8 @@ namespace server {
 struct sendfile_op {
     public:
     typedef std::function<void(boost::system::error_code, std::size_t)> Handler;
-    sendfile_op() = default;
-    sendfile_op(tcp::socket *s, std::shared_ptr<file_descriptor> fd, Handler h) : sock_(s), fd(fd), handler(h) {}
+    sendfile_op() : offset_(0), file_len_(0), total_bytes_transferred_(0) {}
+    sendfile_op(tcp::socket *s, std::shared_ptr<file_descriptor> fd, Handler h) : sock_(s), fd(fd), handler(h), offset_(0), file_len_(0), total_bytes_transferred_(0) {}
 
     // Function call operator meeting WriteHandler requirements.
     // Used as the handler for the async_write_some operation.
@@ -38,9 +38,7 @@ struct sendfile_op {
         assert(handler && sock_ && fd);
 #ifdef __linux__
         if (!file_len_) {
-            struct stat st;
-            if (::fstat(fd->value, &st) != -1)
-                file_len_ = st.st_size;
+        	file_len_ = boost::filesystem::file_size(fd->path);
         }
 #endif
         // Put the underlying socket into non-blocking mode.
@@ -72,7 +70,7 @@ struct sendfile_op {
                     return;
                 }
 
-                if (ec || n == 0) {
+                if (ec || n == 0 || n == count) {
                     // An error occurred, or we have reached the end of the file.
                     // Either way we must exit the loop so we can call the handler.
                     break;
@@ -91,6 +89,7 @@ struct sendfile_op {
     public:
     tcp::socket *sock_;
     std::shared_ptr<file_descriptor> fd;
+    Handler handler;
 #ifdef __linux__
     off64_t offset_;
     off64_t file_len_;
@@ -98,7 +97,6 @@ struct sendfile_op {
     off_t offset_;
 #endif
     std::size_t total_bytes_transferred_;
-    Handler handler;
 
     private:
     int native_sendfile(int out_fd, int in_fd, std::size_t count) {
