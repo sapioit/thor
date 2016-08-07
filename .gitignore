@@ -34,4 +34,12 @@ build-*
 *.user.*
 */.DS_Store
 *xcuserdata*
+.cproject
+.project
+Debug/
+Release/
+cpp_http/.cproject
+cpp_http/.project
+cpp_http/Debug/
+cpp_http/Release/
 
