@@ -11,7 +11,8 @@ QMAKE_CXXFLAGS_RELEASE += -s -O3 -flto
 QMAKE_LFLAGS_RELEASE -= -O1
 QMAKE_LFLAGS_RELEASE += -O3 -flto
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    directory_listing.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../server/release/ -lserver
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../server/debug/ -lserver
@@ -19,3 +20,6 @@ else:unix: LIBS += -L$$OUT_PWD/../server/ -lserver
 
 INCLUDEPATH += $$PWD/../server
 DEPENDPATH += $$PWD/../server
+
+HEADERS += \
+    directory_listing.hpp

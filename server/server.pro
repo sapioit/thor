@@ -21,7 +21,6 @@ QMAKE_LFLAGS_RELEASE += -O3 -flto
 SOURCES += server.cpp \
     char_memory_mapping_cache.cpp \
     connection.cpp \
-    directory_listing.cpp \
     file_descriptor_cache.cpp \
     file_descriptor.cpp \
     header.cpp \
@@ -41,7 +40,6 @@ HEADERS += \
     thor.hpp \
     char_memory_mapping_cache.hpp \
     connection.hpp \
-    directory_listing.hpp \
     file_descriptor_cache.hpp \
     file_descriptor.hpp \
     header.hpp \

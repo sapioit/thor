@@ -11,7 +11,6 @@
 
 #include "directory_listing.hpp"
 #include "server.hpp"
-#include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <functional>
 #include <iostream>
