@@ -1,5 +1,5 @@
-# cpp_http
-Lightweight, header-only C++ HTTP/S library
+# Thor
+Lightweight, C++ HTTP/S library
 
 # Features
 
@@ -9,4 +9,4 @@ Multithreading
 
 Simple API
 
-Low memory footprint
+Small memory footprint
