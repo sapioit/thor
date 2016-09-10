@@ -10,26 +10,21 @@
 
 #ifndef FILE_DESC
 #define FILE_DESC
-#include <boost/noncopyable.hpp>
-#include <fcntl.h>
 #include <string>
-#include <system_error>
-#include <unistd.h>
 
 namespace http {
 namespace server {
 
-struct file_descriptor : private boost::noncopyable {
+struct file_descriptor {
     int value;
     std::string path;
     file_descriptor() = default;
-    file_descriptor(const std::string &path, int mode) : value(::open(path.c_str(), mode)), path(path) {
-        if (!good())
-            throw std::system_error(std::error_code(errno, std::system_category()));
-    }
-    ~file_descriptor() { ::close(value); }
+    file_descriptor(const std::string &path, int mode);
+    ~file_descriptor();
+    file_descriptor(const file_descriptor &) = delete;
+    file_descriptor &operator=(const file_descriptor &) = delete;
 
-    bool good() const { return value != -1; }
+    inline bool good() const { return value != -1; }
 };
 }
 }

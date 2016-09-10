@@ -12,6 +12,7 @@
 #define HTTP_SERVER3_REQUEST_HPP
 
 #include "header.hpp"
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -27,23 +28,10 @@ struct request {
     std::vector<header> headers;
     std::string body;
 
-    header *get_header(const std::string &key) {
-        auto it = std::find_if(headers.begin(), headers.end(), [&key](const header &h) { return h.name == key; });
-        return it != headers.end() ? &*it : nullptr;
-    }
+    header *get_header(const std::string &key);
 
-    const header *get_header(const std::string &key) const {
-        auto it = std::find_if(headers.cbegin(), headers.cend(), [&key](const header &h) { return h.name == key; });
-        return it != headers.end() ? &*it : nullptr;
-    }
-    const std::string &read_body() {
-        try {
-            read_body_func();
-            return body;
-        } catch (...) {
-            throw;
-        }
-    }
+    const header *get_header(const std::string &key) const;
+    const std::string &read_body();
     friend class connection;
     friend class ssl_connection;
 

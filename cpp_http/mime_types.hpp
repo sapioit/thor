@@ -1004,53 +1004,14 @@ static std::unordered_map<std::string, std::string> mappings{
     {"sbml", "application/sbml+xml"},
     {"m2v", "video/mpeg"}};
 
-static std::string get_extension(const std::string &path) {
-    // Determine the file extension.
-    std::size_t last_slash_pos = path.find_last_of("/");
-    std::size_t last_dot_pos = path.find_last_of(".");
-    std::string extension;
+std::string get_extension(const std::string &path);
 
-    if (last_dot_pos != std::string::npos && last_dot_pos > last_slash_pos) {
-        extension = path.substr(last_dot_pos + 1);
-    }
-    return extension;
-}
+std::string exec(const std::string &cmd);
 
-static std::string exec(const std::string &cmd) {
-    std::unique_ptr<FILE, std::function<void(FILE *)>> pipe(popen(cmd.c_str(), "r"), pclose);
-    if (!pipe)
-        return "";
-    char buffer[128];
-    std::string result = "";
-    while (!feof(pipe.get())) {
-        if (fgets(buffer, 128, pipe.get()) != NULL)
-            result += buffer;
-    }
-    return result;
-}
-
-static std::string shell_get_mimetype(const std::string &p) noexcept {
-    std::string cmd = "file --mime-type " + p;
-
-    auto output = exec(cmd);
-    while (output.size() && std::isspace(output.back()))
-        output = output.substr(0, output.size() - 1);
-    auto c = output.find_first_of(':');
-    if (c != std::string::npos && output.size() > ++c)
-        return output.substr(c + 1);
-    return "text/plain";
-}
+std::string shell_get_mimetype(const std::string &p) noexcept;
 
 /// Convert a file path into a MIME type.
-std::string get_mime_type(const std::string &path) {
-    auto ext = get_extension(path);
-    if (ext != "") {
-        auto it = mappings.find(ext);
-        if (it != mappings.end())
-            return it->second;
-    }
-    return shell_get_mimetype(path);
-}
+std::string get_mime_type(const std::string &path);
 
 } // namespace mime_types
 } // namespace server3

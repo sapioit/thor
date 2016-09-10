@@ -33,4 +33,22 @@ HEADERS += \
     cpp_http/directory_listing.hpp
 
 SOURCES += \
-    cpp_http/main.cpp
+    cpp_http/main.cpp \
+    cpp_http/char_memory_mapping_cache.cpp \
+    cpp_http/connection.cpp \
+    cpp_http/directory_listing.cpp \
+    cpp_http/file_descriptor_cache.cpp \
+    cpp_http/file_descriptor.cpp \
+    cpp_http/header.cpp \
+    cpp_http/io_service_pool.cpp \
+    cpp_http/mime_types.cpp \
+    cpp_http/reply.cpp \
+    cpp_http/request_handler.cpp \
+    cpp_http/request_parser.cpp \
+    cpp_http/request.cpp \
+    cpp_http/sendfile_op.cpp \
+    cpp_http/server.cpp \
+    cpp_http/ssl_connection.cpp \
+    cpp_http/string_utils.cpp \
+    cpp_http/user_handler.cpp \
+    cpp_http/memory_mapping.cpp

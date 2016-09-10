@@ -13,29 +13,11 @@
 
 #include "file_descriptor_cache.hpp"
 #include "memory_mapping.hpp"
-#include <fcntl.h>
 
 namespace http {
 namespace server {
 struct char_memory_mapping_cache {
-    static std::shared_ptr<char_memory_mapping> get(const std::string &path, int mode) {
-        using namespace std;
-        static unordered_map<string, weak_ptr<char_memory_mapping>> cache;
-        static mutex m;
-
-        lock_guard<mutex> hold(m);
-        auto sp = cache[path].lock();
-        if (!sp) {
-            try {
-                cache[path] = sp = make_shared<char_memory_mapping>(file_descriptor_cache::get(path, mode),
-                                                                    boost::filesystem::file_size(path));
-            } catch (const std::system_error &) {
-                throw;
-            }
-        }
-
-        return sp;
-    }
+    static std::shared_ptr<char_memory_mapping> get(const std::string &path, int mode);
 };
 }
 }

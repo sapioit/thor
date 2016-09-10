@@ -10,6 +10,7 @@
 
 #ifndef STRING_UTILS_HPP
 #define STRING_UTILS_HPP
+#include <string>
 
 namespace http {
 namespace server {
@@ -22,7 +23,7 @@ template <typename InputIterator> inline std::string uppercase(InputIterator beg
     return out;
 }
 
-std::string uppercase(const std::string &str) { return uppercase(str.cbegin(), str.cend()); }
+std::string uppercase(const std::string &str);
 }
 }
 
