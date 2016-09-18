@@ -8,8 +8,9 @@ QMAKE_CXXFLAGS += -std=c++14 -Wall -I/usr/local/include -I/usr/local/opt/openssl
 QMAKE_CXXFLAGS_DEBUG += -O0 -g -fno-optimize-sibling-calls -fno-omit-frame-pointer
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -s -O3 -flto
-QMAKE_LFLAGS_RELEASE -= -O1
-QMAKE_LFLAGS_RELEASE += -O3 -flto
+QMAKE_LFLAGS_DEBUG += -std=c++14
+QMAKE_LFLAGS_RELEASE -= -O1 -std=gnu++0x
+QMAKE_LFLAGS_RELEASE += -O3 -flto -std=c++14
 
 SOURCES += main.cpp \
     directory_listing.cpp

@@ -30,6 +30,7 @@
 
 */bin/*
 build-*
+build/
 *.user
 *.user.*
 */.DS_Store

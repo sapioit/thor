@@ -16,7 +16,7 @@ QMAKE_CXXFLAGS_DEBUG += -O0 -g -fno-optimize-sibling-calls -fno-omit-frame-point
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -s -O3 -flto
 QMAKE_LFLAGS_RELEASE -= -O1
-QMAKE_LFLAGS_RELEASE += -O3 -flto
+QMAKE_LFLAGS_RELEASE += -O3 -flto -std=c++14
 
 SOURCES += server.cpp \
     char_memory_mapping_cache.cpp \

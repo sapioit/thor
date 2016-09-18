@@ -125,7 +125,7 @@ void http::server::list_directory(const http::server::request &req, http::server
             }
         }
         reply.content = stream.str();
-        reply.add_header("Cache-Control", "no-cache");
+        reply.add_header("Cache-Control", "max-age=60");
         reply.add_header("Content-Type", "text/html");
     } catch (...) {
         reply.status = reply::status_type::internal_server_error;
