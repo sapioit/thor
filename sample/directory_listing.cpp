@@ -103,16 +103,15 @@ void http::server::list_directory(const http::server::request &req, http::server
         std::ostringstream stream;
         stream << "<h1>Directory listing of " + req.uri + "</h1>";
         stream << parent_directory_anchor(req.uri, doc_root);
+        std::vector<boost::filesystem::path> files_in_folder;
+        std::copy(boost::filesystem::directory_iterator(root), boost::filesystem::directory_iterator(),
+                  std::back_inserter(files_in_folder));
 
-        std::vector<boost::filesystem::path> files_in_folder{boost::filesystem::directory_iterator(root),
-                                                             boost::filesystem::directory_iterator()};
-
-        std::sort(files_in_folder.begin(), files_in_folder.end(),
-                  [](const boost::filesystem::path &p1, const boost::filesystem::path &p2) {
-                      return boost::filesystem::last_write_time(p1) > boost::filesystem::last_write_time(p2);
-                  });
+        std::sort(files_in_folder.begin(), files_in_folder.end(), [](const auto &p1, const auto &p2) {
+            return boost::filesystem::last_write_time(p1) > boost::filesystem::last_write_time(p2);
+        });
         std::stable_partition(files_in_folder.begin(), files_in_folder.end(),
-                              [](const boost::filesystem::path &p) { return boost::filesystem::is_regular_file(p); });
+                              [](const auto &p) { return boost::filesystem::is_regular_file(p); });
 
         for (const auto &p : files_in_folder) {
             try {

@@ -1,5 +1,5 @@
 TEMPLATE = app
-CONFIG += console c++11
+CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
@@ -9,7 +9,7 @@ QMAKE_CXXFLAGS_DEBUG += -O0 -g -fno-optimize-sibling-calls -fno-omit-frame-point
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -s -O3 -flto
 QMAKE_LFLAGS_DEBUG += -std=c++14
-QMAKE_LFLAGS_RELEASE -= -O1 -std=gnu++0x
+QMAKE_LFLAGS_RELEASE -= -O1
 QMAKE_LFLAGS_RELEASE += -O3 -flto -std=c++14
 
 SOURCES += main.cpp \
