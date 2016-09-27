@@ -40,7 +40,9 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     virtual void start();
 
     protected:
-    virtual void keep_alive();
+    virtual void start_reading(const boost::system::error_code &error = {});
+
+    void keep_alive();
 
     void keep_alive_if_needed();
 
@@ -58,8 +60,7 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     /// Handle completion of a write operation.
     virtual void handle_write(const boost::system::error_code &e);
 
-    /// Strand to ensure the connection's handlers are not called concurrently.
-    boost::asio::io_service::strand strand_;
+    void handle_idle_timer(const boost::system::error_code &e);
 
     private:
     /// Socket for the connection.
@@ -82,6 +83,10 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
     reply reply_;
 
     sendfile_op sendfile_;
+
+    boost::asio::io_service &io_service_;
+
+    static constexpr int keep_alive_seconds = 90;
 };
 
 typedef boost::shared_ptr<connection> connection_ptr;

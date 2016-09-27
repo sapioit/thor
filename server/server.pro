@@ -34,7 +34,8 @@ SOURCES += server.cpp \
     sendfile_op.cpp \
     ssl_connection.cpp \
     string_utils.cpp \
-    user_handler.cpp
+    user_handler.cpp \
+    log.cpp
 
 HEADERS += \
     thor.hpp \
@@ -54,7 +55,8 @@ HEADERS += \
     server.hpp \
     ssl_connection.hpp \
     string_utils.hpp \
-    user_handler.hpp
+    user_handler.hpp \
+    log.hpp
 
 unix {
     target.path = /usr/lib

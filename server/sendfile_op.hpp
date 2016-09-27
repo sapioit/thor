@@ -33,13 +33,8 @@ struct sendfile_op {
     public:
     tcp::socket *sock_;
     std::shared_ptr<file_descriptor> fd;
-    Handler handler;
-#ifdef __linux__
+    Handler handler_;
     off64_t offset_;
-    off64_t file_len_;
-#elif __APPLE__
-    off_t offset_;
-#endif
     std::size_t total_bytes_transferred_;
 
     private:

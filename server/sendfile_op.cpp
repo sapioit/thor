@@ -18,34 +18,25 @@
 #ifdef _apple_
 #include <sys/uio.h>
 #endif
-http::server::sendfile_op::sendfile_op() : offset_(0), file_len_(0), total_bytes_transferred_(0) {}
+http::server::sendfile_op::sendfile_op() : offset_(0), total_bytes_transferred_(0) {}
 
 http::server::sendfile_op::sendfile_op(tcp::socket *s, std::shared_ptr<http::server::file_descriptor> fd,
                                        http::server::sendfile_op::Handler h)
-    : sock_(s), fd(fd), handler(h), offset_(0), file_len_(0), total_bytes_transferred_(0) {}
+    : sock_(s), fd(fd), handler_(h), offset_(0), total_bytes_transferred_(0) {}
 
 void http::server::sendfile_op::operator()(boost::system::error_code ec, std::size_t) {
-    assert(handler && sock_ && fd);
-#ifdef __linux__
-    if (!file_len_) {
-        file_len_ = boost::filesystem::file_size(fd->path);
-    }
-#endif
+    assert(handler_ && sock_ && fd);
+
     // Put the underlying socket into non-blocking mode.
     if (!ec)
         if (!sock_->native_non_blocking())
             sock_->native_non_blocking(true, ec);
 
     if (!ec) {
-        for (; offset_ <= file_len_;) {
+        for (;;) {
             // Try the system call.
             errno = 0;
-#ifdef __linux__
-            auto count = file_len_ - offset_;
-#elif __APPLE__
-            std::size_t count = 0;
-#endif
-            int n = this->native_sendfile(sock_->native_handle(), fd->value, count);
+            int n = ::sendfile64(sock_->native_handle(), fd->value, &offset_, 65536);
             ec = boost::system::error_code(n < 0 ? errno : 0, boost::asio::error::get_system_category());
             total_bytes_transferred_ += ec ? 0 : n;
 
@@ -60,7 +51,7 @@ void http::server::sendfile_op::operator()(boost::system::error_code ec, std::si
                 return;
             }
 
-            if (ec || n == 0 || n == count) {
+            if (ec || n == 0) {
                 // An error occurred, or we have reached the end of the file.
                 // Either way we must exit the loop so we can call the handler.
                 break;
@@ -71,20 +62,11 @@ void http::server::sendfile_op::operator()(boost::system::error_code ec, std::si
     }
 
     // Pass result back to user's handler.
-    handler(ec, total_bytes_transferred_);
+    handler_(ec, total_bytes_transferred_);
 }
 
 int http::server::sendfile_op::native_sendfile(int out_fd, int in_fd, std::size_t count) {
-#ifdef __linux__
     return ::sendfile64(out_fd, in_fd, &offset_, count);
-#elif __APPLE__
-    (void)count;
-    off_t len = 0;
-    int ret = ::sendfile(in_fd, out_fd, offset_, &len, nullptr, 0);
-    offset_ += len;
-    return ret;
-
-#endif
 }
 
 http::server::sendfile_op::operator bool() const { return fd.get(); }

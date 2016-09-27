@@ -1,5 +1,4 @@
 #ifndef SERVER_GLOBAL_H
 #define SERVER_GLOBAL_H
 
-
 #endif // SERVER_GLOBAL_H

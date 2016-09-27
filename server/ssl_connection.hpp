@@ -34,12 +34,10 @@ class ssl_connection : public connection {
     void start() override;
 
     private:
-    void handle_handshake(const boost::system::error_code &error);
-
     void sync_read(char *where, std::size_t bytes, boost::system::error_code &ec) override;
 
     protected:
-    void keep_alive() override;
+    virtual void start_reading(const boost::system::error_code &error = {}) override;
 
     /// Handle completion of a read operation.
     void handle_read(const boost::system::error_code &e, std::size_t bytes_transferred) override;

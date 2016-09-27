@@ -10,25 +10,35 @@
 //
 
 #include "connection.hpp"
+#include "log.hpp"
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 
 http::server::connection::connection(boost::asio::io_service &io_service, http::server::request_handler &handler)
-    : strand_(io_service), socket_(io_service), request_handler_(handler) {}
+    : socket_(io_service), request_handler_(handler), io_service_(io_service) {}
 
 http::server::connection::~connection() {}
 
 tcp::socket &http::server::connection::socket() { return socket_; }
 
-void http::server::connection::start() {
-    socket_.async_read_some(
-        boost::asio::buffer(buffer_),
-        strand_.wrap(boost::bind(&connection::handle_read, shared_from_this(), boost::asio::placeholders::error,
-                                 boost::asio::placeholders::bytes_transferred)));
+void http::server::connection::start() { connection::start_reading(); }
+
+void http::server::connection::start_reading(const boost::system::error_code &) {
+    socket_.async_read_some(boost::asio::buffer(buffer_),
+                            boost::bind(&connection::handle_read, shared_from_this(), boost::asio::placeholders::error,
+                                        boost::asio::placeholders::bytes_transferred));
 }
 
-void http::server::connection::keep_alive() { start(); }
+void http::server::connection::keep_alive() {
+    start_reading();
+
+    //    auto timer =
+    //        std::make_shared<boost::asio::deadline_timer>(io_service_,
+    //        boost::posix_time::seconds(keep_alive_seconds));
+    //    auto self = shared_from_this();
+    //    timer->async_wait([self, timer](const boost::system::error_code &e) { self->handle_idle_timer(e); });
+}
 
 void http::server::connection::keep_alive_if_needed() {
     if (auto connection_field_ptr = reply_.get_header("Connection")) {
@@ -41,7 +51,17 @@ void http::server::connection::keep_alive_if_needed() {
     }
 }
 
-void http::server::connection::handle_sendfile_done(const boost::system::error_code &, std::size_t) {
+void http::server::connection::handle_idle_timer(const boost::system::error_code &ec) {
+    if (!ec) {
+        socket_.cancel();
+    } else {
+        log::write("handle_idle_timer: " + ec.message());
+    }
+}
+
+void http::server::connection::handle_sendfile_done(const boost::system::error_code &ec, std::size_t) {
+    if (ec)
+        log::write("handle_sendfile_done: " + ec.message());
     sendfile_ = {};
     keep_alive_if_needed();
 }
@@ -97,22 +117,22 @@ void http::server::connection::handle_read(const boost::system::error_code &e, s
             drain_body_if_needed();
             if (reply_.sendfile)
                 sendfile_ = reply_.sendfile;
-            boost::asio::async_write(socket_, reply_.to_buffers(),
-                                     strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
-                                                              boost::asio::placeholders::error)));
+            boost::asio::async_write(
+                socket_, reply_.to_buffers(),
+                boost::bind(&connection::handle_write, shared_from_this(), boost::asio::placeholders::error));
         } else if (!result) {
             // The request is malformed.
             reply_ = reply::stock_reply(reply::status_type::bad_request);
             drain_body_if_needed();
-            boost::asio::async_write(socket_, reply_.to_buffers(),
-                                     strand_.wrap(boost::bind(&connection::handle_write, shared_from_this(),
-                                                              boost::asio::placeholders::error)));
+            boost::asio::async_write(
+                socket_, reply_.to_buffers(),
+                boost::bind(&connection::handle_write, shared_from_this(), boost::asio::placeholders::error));
         } else {
             // Need more data.
-            socket_.async_read_some(
-                boost::asio::buffer(buffer_),
-                strand_.wrap(boost::bind(&connection::handle_read, shared_from_this(), boost::asio::placeholders::error,
-                                         boost::asio::placeholders::bytes_transferred)));
+            socket_.async_read_some(boost::asio::buffer(buffer_),
+                                    boost::bind(&connection::handle_read, shared_from_this(),
+                                                boost::asio::placeholders::error,
+                                                boost::asio::placeholders::bytes_transferred));
         }
     }
 
@@ -126,7 +146,7 @@ void http::server::connection::handle_write(const boost::system::error_code &e) 
     if (!e) {
         if (sendfile_) {
             sendfile_.sock_ = &socket_;
-            sendfile_.handler =
+            sendfile_.handler_ =
                 boost::bind(&connection::handle_sendfile_done, shared_from_this(), boost::asio::placeholders::error,
                             boost::asio::placeholders::bytes_transferred);
             socket_.async_write_some(boost::asio::null_buffers(), sendfile_);

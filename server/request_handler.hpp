@@ -87,8 +87,8 @@ class request_handler : private boost::noncopyable {
 
         if (rep.status == reply::status_type::ok) {
             /// Statuses other than OK shouldn't have the fields set in this scope
-            rep.add_header("Content-Length", std::to_string(boost::filesystem::file_size(full_path)));
             rep.add_header("Content-Type", mime_types::get_mime_type(full_path));
+            rep.add_header("Content-Length", std::to_string(boost::filesystem::file_size(full_path)));
             auto header = req.get_header("Connection");
             if (!header || http::server::uppercase(header->value) == "KEEP-ALIVE") {
                 rep.add_header("Connection", "Keep-Alive");
