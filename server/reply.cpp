@@ -27,7 +27,7 @@ std::vector<boost::asio::const_buffer> http::server::reply::to_buffers() {
     if (memory_mapping)
         buffers.push_back(boost::asio::const_buffer(&memory_mapping->at(0), memory_mapping->size()));
     else
-        buffers.push_back(boost::asio::buffer(content));
+        buffers.push_back(boost::asio::buffer(content, content.size()));
 
     return buffers;
 }

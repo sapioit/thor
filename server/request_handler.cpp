@@ -10,6 +10,9 @@
 //
 
 #include "request_handler.hpp"
+#include <boost/iostreams/copy.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
 
 http::server::request_handler::request_handler(const std::string &doc_root,
                                                const std::vector<http::server::user_handler> &user_handlers)
@@ -42,13 +45,34 @@ void http::server::request_handler::invoke_user_handler(http::server::request &r
             rep.add_header("Content-Type", "text/plain");
         }
         if (!rep.get_header("Content-Encoding")) {
-            rep.add_header("Content-Encoding", "identity");
+            handle_compression(req, rep);
         }
         auto header = rep.get_header("Connection");
         if (!header || uppercase(header->value) == "KEEP-ALIVE") {
             rep.add_header("Connection", "Keep-Alive");
         } else if (header && uppercase(header->value) == "CLOSE") {
             rep.add_header("Connection", "Close");
+        }
+    }
+}
+
+void http::server::request_handler::handle_compression(const http::server::request &req,
+                                                       http::server::reply &rep) const {
+    if (auto encoding_header = req.get_header("Accept-Encoding")) {
+        if (encoding_header->value.find("gzip") != std::string::npos) {
+            if (rep.content.size()) {
+                // Compress using gzip
+                std::stringstream compressed, original(rep.content);
+
+                boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
+                out.push(boost::iostreams::gzip_compressor(boost::iostreams::gzip::best_compression));
+                out.push(original);
+                boost::iostreams::copy(out, compressed);
+
+                rep.content = compressed.str();
+            }
+            rep.get_header("Content-Length")->value = std::to_string(rep.content.size());
+            rep.add_header("Content-Encoding", "gzip");
         }
     }
 }

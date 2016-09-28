@@ -101,6 +101,8 @@ class request_handler : private boost::noncopyable {
     /// Invokes the user handler and fixes the missing headers
     void invoke_user_handler(request &req, reply &rep, const user_handler *u_handler) const;
 
+    void handle_compression(const http::server::request &req, http::server::reply &rep) const;
+
     /// Perform URL-decoding on a string. Returns false if the encoding was
     /// invalid.
     static bool url_decode(const std::string &in, std::string &out);
