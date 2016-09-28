@@ -41,6 +41,9 @@ void http::server::request_handler::invoke_user_handler(http::server::request &r
         if (!rep.get_header("Content-Type")) {
             rep.add_header("Content-Type", "text/plain");
         }
+        if (!rep.get_header("Content-Encoding")) {
+            rep.add_header("Content-Encoding", "identity");
+        }
         auto header = rep.get_header("Connection");
         if (!header || uppercase(header->value) == "KEEP-ALIVE") {
             rep.add_header("Connection", "Keep-Alive");
