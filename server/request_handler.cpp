@@ -89,29 +89,35 @@ http::server::request_handler::handle_compression_for_files(const http::server::
             return std::make_pair(true, compressed_path);
         }
         if (!boost::filesystem::exists(temp_compressed_path)) {
-            // Compress the file
-            {
-                std::ifstream original(full_uncompressed_path);
-                std::ofstream compressed(temp_compressed_path);
+            auto pid = fork();
+            if (pid == 0) {
+                // Compress the file
+                {
+                    std::ifstream original(full_uncompressed_path);
+                    std::ofstream compressed(temp_compressed_path);
 
-                boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
-                out.push(boost::iostreams::gzip_compressor(boost::iostreams::gzip::best_compression));
-                out.push(original);
+                    boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
+                    out.push(boost::iostreams::gzip_compressor(boost::iostreams::gzip::best_compression));
+                    out.push(original);
 
-                boost::iostreams::copy(out, compressed);
-            }
-            try {
-                // Rename the file atomically. If it fails, delete the old file
-                boost::filesystem::rename(temp_compressed_path, compressed_path);
-            } catch (const boost::filesystem::filesystem_error &e) {
-                log::write("handle_compression_for_files: could not compress file " + full_uncompressed_path +
-                           " exception message: " + e.what());
-                boost::system::error_code ec;
-                boost::filesystem::remove(temp_compressed_path, ec);
-                if (ec) {
-                    log::write("handle_compression_for_files: could not remove the "
-                               "temporary compressed file");
+                    boost::iostreams::copy(out, compressed);
                 }
+                try {
+                    // Rename the file atomically. If it fails, delete the old file
+                    boost::filesystem::rename(temp_compressed_path, compressed_path);
+                } catch (const boost::filesystem::filesystem_error &e) {
+                    log::write("handle_compression_for_files: could not compress file " + full_uncompressed_path +
+                               " exception message: " + e.what());
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(temp_compressed_path, ec);
+                    if (ec) {
+                        log::write("handle_compression_for_files: could not remove the "
+                                   "temporary compressed file");
+                    }
+                }
+                std::exit(EXIT_SUCCESS);
+            } else if (pid == -1) {
+                log::write("handle_compression_for_files: fork failed");
             }
         }
     }

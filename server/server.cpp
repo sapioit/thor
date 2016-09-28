@@ -33,6 +33,7 @@ http::server::server::server(const std::string &address, const std::string &http
     signals_.add(SIGINT);
     signals_.add(SIGTERM);
     signal(SIGPIPE, SIG_IGN);
+    signal(SIGCHLD, SIG_IGN);
 #if defined(SIGQUIT)
     signals_.add(SIGQUIT);
 #endif // defined(SIGQUIT)
