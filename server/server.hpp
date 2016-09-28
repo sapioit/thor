@@ -27,8 +27,8 @@ class server : private boost::noncopyable {
     /// Construct the server to listen on the specified TCP address and port, and
     /// serve up files from the given directory.
     explicit server(const std::string &address, const std::string &http_port, const std::string &https_port,
-                    const std::string &doc_root, const std::string &cert_root, std::size_t thread_pool_size,
-                    const std::vector<user_handler> &user_handlers);
+                    const std::string &doc_root, const std::string &cert_root, const std::string &compression_folder,
+                    std::size_t thread_pool_size, const std::vector<user_handler> &user_handlers);
 
     /// Run the server's io_service loop.
     void run();
@@ -45,6 +45,8 @@ class server : private boost::noncopyable {
     void handle_ssl_accept(const boost::system::error_code &e);
 
     std::string get_cert_folder() const;
+
+    std::string get_compression_folder() const;
 
     std::string get_password() const;
 

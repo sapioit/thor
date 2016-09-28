@@ -26,7 +26,7 @@ using namespace http::server;
 int main(int argc, char *argv[]) {
     try {
         // Check command line arguments.
-        if (argc != 7) {
+        if (argc != 8) {
             std::cerr << "Usage: http_server <address> <http_port> <https_port> <threads> <doc_root> <cert_root>\n";
             std::cerr << "  For IPv4, try:\n";
             std::cerr << "    receiver 0.0.0.0 80 443 1 . .\n";
@@ -39,13 +39,14 @@ int main(int argc, char *argv[]) {
         std::string https_port = argv[3];
         std::size_t num_threads = boost::lexical_cast<std::size_t>(argv[4]);
         std::string doc_root = argv[5];
-        std::string keys = argv[6];
+        std::string cert_root = argv[6];
+        std::string compression_folder = argv[7];
         std::vector<user_handler> handlers;
         handlers.emplace_back(matcher_ptr(new folder{doc_root}),
                               std::bind(list_directory, std::placeholders::_1, std::placeholders::_2, doc_root));
 
         // Initialise the server.
-        http::server::server s(address, http_port, https_port, doc_root, keys, num_threads, handlers);
+        http::server::server s(address, http_port, https_port, doc_root, cert_root, compression_folder, num_threads, handlers);
 
         // Run the server until stopped.
         s.run();

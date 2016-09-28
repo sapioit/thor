@@ -10,13 +10,14 @@
 //
 
 #include "request_handler.hpp"
+#include "log.hpp"
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 
-http::server::request_handler::request_handler(const std::string &doc_root,
+http::server::request_handler::request_handler(const std::string &doc_root, const std::string &compression_folder,
                                                const std::vector<http::server::user_handler> &user_handlers)
-    : doc_root_(doc_root), user_handlers_(user_handlers) {}
+    : doc_root_(doc_root), compression_folder_(compression_folder), user_handlers_(user_handlers) {}
 
 const http::server::user_handler *
 http::server::request_handler::get_user_handler(const http::server::request &req) const {
@@ -58,23 +59,65 @@ void http::server::request_handler::invoke_user_handler(http::server::request &r
 
 void http::server::request_handler::handle_compression(const http::server::request &req,
                                                        http::server::reply &rep) const {
-    if (auto encoding_header = req.get_header("Accept-Encoding")) {
-        if (encoding_header->value.find("gzip") != std::string::npos) {
-            if (rep.content.size()) {
-                // Compress using gzip
-                std::stringstream compressed, original(rep.content);
+    if (can_gzip(req)) {
+        if (rep.content.size()) {
+            // Compress using gzip
+            std::stringstream compressed, original(rep.content);
+
+            boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
+            out.push(boost::iostreams::gzip_compressor(boost::iostreams::gzip::best_compression));
+            out.push(original);
+            boost::iostreams::copy(out, compressed);
+
+            rep.content = compressed.str();
+        }
+        rep.get_header("Content-Length")->value = std::to_string(rep.content.size());
+        rep.add_header("Content-Encoding", "gzip");
+    }
+}
+
+std::pair<bool, std::string>
+http::server::request_handler::handle_compression_for_files(const http::server::request &req, http::server::reply &rep,
+                                                            const std::string &full_uncompressed_path) const {
+    if (can_gzip(req)) {
+        auto file_name = req.uri.substr(req.uri.find_last_of('/') + 1);
+        auto compressed_path = compression_folder_ + "/gzip." + file_name;
+        auto temp_compressed_path = compressed_path + ".tmp";
+
+        if (boost::filesystem::exists(compressed_path)) {
+            rep.add_header("Content-Encoding", "gzip");
+            return std::make_pair(true, compressed_path);
+        }
+        if (!boost::filesystem::exists(temp_compressed_path)) {
+            // Compress the file
+            {
+                std::ifstream original(full_uncompressed_path);
+                std::ofstream compressed(temp_compressed_path);
 
                 boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
                 out.push(boost::iostreams::gzip_compressor(boost::iostreams::gzip::best_compression));
                 out.push(original);
-                boost::iostreams::copy(out, compressed);
 
-                rep.content = compressed.str();
+                boost::iostreams::copy(out, compressed);
             }
-            rep.get_header("Content-Length")->value = std::to_string(rep.content.size());
-            rep.add_header("Content-Encoding", "gzip");
+            try {
+                // Rename the file atomically. If it fails, delete the old file
+                boost::filesystem::rename(temp_compressed_path, compressed_path);
+            } catch (const boost::filesystem::filesystem_error &e) {
+                log::write("handle_compression_for_files: could not compress file " + full_uncompressed_path +
+                           " exception message: " + e.what());
+                boost::system::error_code ec;
+                boost::filesystem::remove(temp_compressed_path, ec);
+                if (ec) {
+                    log::write("handle_compression_for_files: could not remove the "
+                               "temporary compressed file");
+                }
+            }
         }
     }
+
+    // The file is being compressed at the moment or the client doesn't accept compression
+    return std::make_pair(false, "");
 }
 
 bool http::server::request_handler::url_decode(const std::string &in, std::string &out) {
@@ -101,6 +144,15 @@ bool http::server::request_handler::url_decode(const std::string &in, std::strin
         }
     }
     return true;
+}
+
+bool http::server::request_handler::can_gzip(const http::server::request &req) {
+    if (auto encoding_header = req.get_header("Accept-Encoding")) {
+        if (encoding_header->value.find("gzip") != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
 }
 
 namespace http {

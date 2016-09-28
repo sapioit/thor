@@ -16,12 +16,17 @@
 #include <vector>
 
 http::server::server::server(const std::string &address, const std::string &http_port, const std::string &https_port,
-                             const std::string &doc_root, const std::string &cert_root, std::size_t thread_pool_size,
+                             const std::string &doc_root, const std::string &cert_root,
+                             const std::string &compression_folder, std::size_t thread_pool_size,
                              const std::vector<http::server::user_handler> &user_handlers)
     : io_service_pool_(thread_pool_size), signals_(io_service_pool_.get_io_service()),
       acceptor_(io_service_pool_.get_io_service()), ssl_acceptor_(io_service_pool_.get_io_service()), new_connection_(),
-      request_handler_(doc_root, user_handlers), cert_root_(cert_root),
+      request_handler_(doc_root, compression_folder, user_handlers), cert_root_(cert_root),
       ssl_context_(io_service_pool_.get_io_service(), boost::asio::ssl::context::tlsv12) {
+
+    if (!boost::filesystem::exists(compression_folder)) {
+        boost::filesystem::create_directories(compression_folder);
+    }
     // Register to handle the signals that indicate when the server should exit.
     // It is safe to register for the same signal multiple times in a program,
     // provided all registration for the specified signal is made through Asio.
