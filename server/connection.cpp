@@ -33,11 +33,10 @@ void http::server::connection::start_reading(const boost::system::error_code &) 
 void http::server::connection::keep_alive() {
     start_reading();
 
-    //    auto timer =
-    //        std::make_shared<boost::asio::deadline_timer>(io_service_,
-    //        boost::posix_time::seconds(keep_alive_seconds));
-    //    auto self = shared_from_this();
-    //    timer->async_wait([self, timer](const boost::system::error_code &e) { self->handle_idle_timer(e); });
+    timer_.reset(new boost::asio::deadline_timer(io_service_, boost::posix_time::seconds(keep_alive_seconds)));
+
+    auto self = shared_from_this();
+    timer_->async_wait([self, this](const boost::system::error_code &ec) { self->handle_idle_timer(ec); });
 }
 
 void http::server::connection::keep_alive_if_needed() {
@@ -54,8 +53,6 @@ void http::server::connection::keep_alive_if_needed() {
 void http::server::connection::handle_idle_timer(const boost::system::error_code &ec) {
     if (!ec) {
         socket_.cancel();
-    } else {
-        log::write("handle_idle_timer: " + ec.message());
     }
 }
 
@@ -95,6 +92,7 @@ void http::server::connection::sync_read(char *where, std::size_t bytes, boost::
 }
 
 void http::server::connection::handle_read(const boost::system::error_code &e, std::size_t bytes_transferred) {
+    timer_.reset();
     if (!e) {
         boost::tribool result;
         boost::tie(result, boost::tuples::ignore) =

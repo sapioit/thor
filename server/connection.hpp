@@ -86,7 +86,9 @@ class connection : public virtual boost::enable_shared_from_this<connection>, pr
 
     boost::asio::io_service &io_service_;
 
-    static constexpr int keep_alive_seconds = 90;
+    std::unique_ptr<boost::asio::deadline_timer> timer_;
+
+    static constexpr int keep_alive_seconds = 15;
 };
 
 typedef boost::shared_ptr<connection> connection_ptr;
