@@ -60,7 +60,7 @@ void http::server::connection::handle_sendfile_done(const boost::system::error_c
     if (ec)
         log::write("handle_sendfile_done: " + ec.message());
     sendfile_ = {};
-    keep_alive_if_needed();
+    // keep_alive_if_needed();
 }
 
 void http::server::connection::drain_body(boost::system::error_code &ec) {
