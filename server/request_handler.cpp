@@ -153,12 +153,22 @@ bool http::server::request_handler::url_decode(const std::string &in, std::strin
 }
 
 bool http::server::request_handler::can_gzip(const http::server::request &req) {
+    bool accepts_gzip = false;
+
+    // Safari on both OS X and iOS has problems handling compression
+    bool is_safari = false;
+
     if (auto encoding_header = req.get_header("Accept-Encoding")) {
         if (encoding_header->value.find("gzip") != std::string::npos) {
-            return true;
+            accepts_gzip = false;
         }
     }
-    return false;
+    if (auto user_agent = req.get_header("User-Agent")) {
+        if (user_agent->value.find("AppleWebKit") != std::string::npos) {
+            is_safari = true;
+        }
+    }
+    return accepts_gzip && !is_safari;
 }
 
 namespace http {
