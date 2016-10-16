@@ -1,5 +1,5 @@
 # Thor
-Lightweight, C++ HTTP/S library
+Major rewrite of Viking - https://github.com/vladimir-voinea/Viking - Lightweight, C++ HTTP/S library.
 
 # Features
 
